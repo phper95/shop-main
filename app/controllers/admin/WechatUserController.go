@@ -51,7 +51,7 @@ func (e *WechatUserController) GetAll(c *gin.Context) {
 // @router / [put]
 func (e *WechatUserController) Put(c *gin.Context) {
 	var (
-		model dto3.shopUser
+		model dto3.ShopUser
 		appG  = app.Gin{C: c}
 	)
 	httpCode, errCode := app.BindAndValid(c, &model)

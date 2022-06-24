@@ -1,25 +1,15 @@
-<h1 style="text-align: center">海量数据高并发场景，构建Go+ES8企业级搜索微服务课程商城系统</h1>
+# 海量数据高并发场景，构建Go+ES8企业级搜索微服务课程商城系统
 
+## 项目简介
+海量数据高并发场景，构建Go+ES8企业级搜索微服务课程商城系统基于当前流行技术组合的前后端商城管理系统：
 
+[课程地址 **点此 打开**](https://coding.imooc.com/class/579.html?mc_marking=bb86c9071ed9b7cf12612a2a85203372)
 
+项目基于Gin+Gorm+Casbin+Jwt+Redis+Mysql5.7+Vue 的前后端分离电商管理系统，权限控制采用RBAC，
+支持商城商品加入购物车、下单、评价、支付（微信支付与余额支付）、搜索、地址管理、快递鸟查询、多级分类，商品管理、商品sku、图片素材、数据字典与数据权限管理，支持动态路由等
 
-#### 项目简介
-shop-gin基于当前流行技术组合的前后端商城系统(包含了go后端、后台vue前端、pc商城用户端)： shop-gin意象商城系统(目前版本v1.2)基于当前流行技术组合的前后端商城管理系统：
-Gin+Gorm+Casbin+Jwt+Redis+Mysql8+Vue 的前后端分离电商管理系统，权限控制采用RBAC，支持商城商品加入购物车、下单、评价、支付（微信支付与余额支付）、搜索、地址管理、快递鸟查询、多级分类，商品管理、商品sku、图片素材、数据字典与数据权限管理，支持动态路由等
+## pc商城功能：
 
-#### 项目文档（还在完善中...，小伙伴记得star）
-
- 文档地址：[https://gitee.com/guchengwuyue/shop-gin/wikis/pages](http://gitee.com/guchengwuyue/shop-gin/wikis/pages)
-
-
-#### 项目源码
-
-|     |   后端源码与pc商城前端源码  |   后台前端源码  | 
-|---  |--- | --- | 
-|  码云  |  https://gitee.com/guchengwuyue/shop-gin   |  https://gitee.com/guchengwuyue/shop-gin-vue   | 
-|  github   | https://github.com/guchengwuyue/shop-gin  |  https://github.com/guchengwuyue/shop-gin-vue | 
-
-#### 已经实现pc商城功能：
 - 登录注册
 - 首页轮播图
 - 首页商品展示
@@ -35,8 +25,8 @@ Gin+Gorm+Casbin+Jwt+Redis+Mysql8+Vue 的前后端分离电商管理系统，权�
 - 商品分类等搜索
 - 个人中心图像上传等
 
+##  商城后台系统功能
 
-####  已经实现商城后台系统功能
 - 用户管理：提供用户的相关配置 
 - 角色管理：对权限与菜单进行分配，可根据部门设置角色的数据权限 
 - 菜单管理：已实现菜单动态路由，后端可配置化 
@@ -52,7 +42,7 @@ Gin+Gorm+Casbin+Jwt+Redis+Mysql8+Vue 的前后端分离电商管理系统，权�
 - 订单管理：对订单发货查看详情等操作
 - 物流快递：实现了快递鸟基本查询功能
 
-#### 详细结构
+## 项目结构
 
 ```
 - app 应用模块
@@ -84,7 +74,20 @@ Gin+Gorm+Casbin+Jwt+Redis+Mysql8+Vue 的前后端分离电商管理系统，权�
 - runtime 资源目录
 - config.yml yml配置
 ```
-#### go后端配置、启动、部署
+
+## 环境要求
+- go >= 1.15
+- MySQL >= 5.7
+- redis >=4.0.0
+
+## 后端技术
+gin、gorm、jwt、redis、Mysql、copier、ksuid、 Redis、swagger、zap、viper、wechat
+
+##　前端技术
+npm、ES6、vue-cli、vue-router、vuex、element-ui
+
+## 后端配置部署和启动
+
 ```
 1、安装go>=1.15,这个可以https://studygolang.com/dl下载
 
@@ -96,13 +99,11 @@ Gin+Gorm+Casbin+Jwt+Redis+Mysql8+Vue 的前后端分离电商管理系统，权�
 
 5、go mod tidy 安装所需依赖
 
-6、导入sql/shop_go.sql,修改cconfig,yml 里数据库与redis配置
+6、导入sql/shop.sql,修改cconfig,yml 里数据库与redis配置
 
-7、本地运行air -c .air.conf 启动即可，如果没有安装air的 直接go run main,go即可
+7、本地运行go run main.go
 
-8、线上部署： go build  打包然后上传服务器命令： nohup ./go-mall & 
-
-9、配置nginx 反向代理即可
+8、线上部署： 
 ```
 #### pc用户端配置、启动、部署
 ```

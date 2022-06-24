@@ -38,7 +38,7 @@ func Setup() {
 	jwtSecret = []byte(global.CONFIG.App.JwtSecret)
 }
 
-func GenerateAppToken(m *models.shopUser, d time.Time) (string, error) {
+func GenerateAppToken(m *models.ShopUser, d time.Time) (string, error) {
 	m.Password = ""
 	//m.Permissions = []string{}
 	//expireTime := time.Now().Add(d)
@@ -101,7 +101,7 @@ func GetAppUser(c *gin.Context) (*vo.JwtUser, error) {
 }
 
 //返回 detail user
-func GetAppDetailUser(c *gin.Context) (*models.shopUser, error) {
+func GetAppDetailUser(c *gin.Context) (*models.ShopUser, error) {
 	mytoken := c.Request.Header.Get("Authorization")
 	if mytoken == "" {
 		return nil, errors.New("user not login")
@@ -113,7 +113,7 @@ func GetAppDetailUser(c *gin.Context) (*models.shopUser, error) {
 		return nil, err
 	}
 	jsonStr := userMap[key]
-	user := &models.shopUser{}
+	user := &models.ShopUser{}
 	err = json.Unmarshal([]byte(jsonStr), user)
 	if err != nil {
 		return nil, err

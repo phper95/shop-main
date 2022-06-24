@@ -25,5 +25,5 @@ func InitCasbin(db *gorm.DB) {
 		log.Printf("[info] casbin %s", err)
 	}
 
-	runtime.Runtime.SetCasbin(constant.shop_CASBIN, e)
+	runtime.Runtime.SetCasbin(constant.Shop_CASBIN, e)
 }

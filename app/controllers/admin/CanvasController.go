@@ -41,7 +41,7 @@ func (e *CanvasController) Get(c *gin.Context) {
 // @router / [post]
 func (e *CanvasController) Post(c *gin.Context) {
 	var (
-		model models.shopStoreCanvas
+		model models.StoreCanvas
 		appG  = app.Gin{C: c}
 	)
 	paramErr := app.BindAndValidate(c, &model)

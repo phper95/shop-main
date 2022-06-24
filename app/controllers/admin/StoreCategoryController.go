@@ -35,7 +35,7 @@ func (e *StoreCategoryController) GetAll(c *gin.Context) {
 // @router / [post]
 func (e *StoreCategoryController) Post(c *gin.Context) {
 	var (
-		model models.shopStoreCategory
+		model models.StoreCategory
 		appG  = app.Gin{C: c}
 	)
 	httpCode, errCode := app.BindAndValid(c, &model)
@@ -61,7 +61,7 @@ func (e *StoreCategoryController) Post(c *gin.Context) {
 // @router / [put]
 func (e *StoreCategoryController) Put(c *gin.Context) {
 	var (
-		model models.shopStoreCategory
+		model models.StoreCategory
 		appG  = app.Gin{C: c}
 	)
 	httpCode, errCode := app.BindAndValid(c, &model)

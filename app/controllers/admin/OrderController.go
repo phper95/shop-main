@@ -52,7 +52,7 @@ func (e *OrderController) GetAll(c *gin.Context) {
 // @router / [post]
 func (e *OrderController) Post(c *gin.Context) {
 	var (
-		model models.shopWechatArticle
+		model models.WechatArticle
 		appG  = app.Gin{C: c}
 	)
 
@@ -81,7 +81,7 @@ func (e *OrderController) Post(c *gin.Context) {
 // @router / [put]
 func (e *OrderController) Put(c *gin.Context) {
 	var (
-		model models.shopStoreOrder
+		model models.StoreOrder
 		appG  = app.Gin{C: c}
 	)
 	httpCode, errCode := app.BindAndValid(c, &model)
@@ -107,7 +107,7 @@ func (e *OrderController) Put(c *gin.Context) {
 // @router / [put]
 func (e *OrderController) Deliver(c *gin.Context) {
 	var (
-		model models.shopStoreOrder
+		model models.StoreOrder
 		appG  = app.Gin{C: c}
 	)
 	httpCode, errCode := app.BindAndValid(c, &model)

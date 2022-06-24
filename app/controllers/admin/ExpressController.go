@@ -46,7 +46,7 @@ func (e *ExpressController) GetAll(c *gin.Context) {
 // @router / [post]
 func (e *ExpressController) Post(c *gin.Context) {
 	var (
-		model models.shopExpress
+		model models.Express
 		appG  = app.Gin{C: c}
 	)
 
@@ -75,7 +75,7 @@ func (e *ExpressController) Post(c *gin.Context) {
 // @router / [put]
 func (e *ExpressController) Put(c *gin.Context) {
 	var (
-		model models.shopExpress
+		model models.Express
 		appG  = app.Gin{C: c}
 	)
 	httpCode, errCode := app.BindAndValid(c, &model)
@@ -115,4 +115,3 @@ func (e *ExpressController) Delete(c *gin.Context) {
 
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)
 }
-

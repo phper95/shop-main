@@ -5,7 +5,7 @@ server:
   write-timeout: 60
 app:
   page-size: 10
-  jwt-secret: go-mall
+  jwt-secret: shop
   prefix-url: 'http://127.0.0.1:8000'
   runtime-root-path: 'runtime/'
   image-save-path: 'upload/images/'
@@ -25,7 +25,7 @@ database:
   user: 'root'
   password: 'root'
   host: '127.0.0.1:3306'
-  name: 'shop_go'
+  name: 'shop'
   table_prefix:
 
 redis:
@@ -44,7 +44,7 @@ zap:
 wechat:
   app_id:
   app_secret:
-  token: shop-gin
+  token: shop
   encoding_aes_key:
 
 express:
