@@ -42,7 +42,7 @@ type StoreProduct struct {
 }
 
 func (StoreProduct) TableName() string {
-	return "shop_store_product"
+	return "store_product"
 }
 
 func GetProduct(id int64) StoreProduct {

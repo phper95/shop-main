@@ -18,7 +18,7 @@ type WechatMenu struct {
 }
 
 func (WechatMenu) TableName() string {
-	return "shop_wechat_menu"
+	return "wechat_menu"
 }
 
 // get all
@@ -43,7 +43,7 @@ func AddWechatMenu(m *WechatMenu) error {
 
 func UpdateByWechatMenu(m *WechatMenu) error {
 	var err error
-	err = db.Model(&WechatMenu{}).Where("key", constant.Shop_WEICHAT_MENU).Updates(m).Error
+	err = db.Model(&WechatMenu{}).Where("key", constant.WEICHAT_MENU).Updates(m).Error
 	if err != nil {
 		return err
 	}

@@ -65,7 +65,7 @@ type StoreOrder struct {
 }
 
 func (StoreOrder) TableName() string {
-	return "shop_store_order"
+	return "store_order"
 }
 
 func GetAllOrder(pageNUm int, pageSize int, maps interface{}) (int64, []StoreOrder) {

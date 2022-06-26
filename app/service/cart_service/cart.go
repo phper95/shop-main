@@ -151,7 +151,7 @@ func (d *Cart) GetCartList() map[string]interface{} {
 func (d *Cart) GetUserCartNum() int {
 	var num int
 	err := global.Db.
-		Raw("select sum(cart_num) from shop_store_cart "+
+		Raw("select sum(cart_num) from store_cart "+
 			"where is_pay=0 and is_del = 0 and is_new = 0 and uid = ?", d.Uid).
 		Scan(&num).Error
 	if err != nil {

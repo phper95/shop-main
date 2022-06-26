@@ -19,7 +19,7 @@ type ShippingTemplatesRegion struct {
 }
 
 func (ShippingTemplatesRegion) TableName() string {
-	return "shop_shipping_templates_region"
+	return "shipping_templates_region"
 }
 
 func AddShippingTemplatesRegion(m *ShippingTemplatesRegion) error {

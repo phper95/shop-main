@@ -22,7 +22,7 @@ type UserBill struct {
 }
 
 func (UserBill) TableName() string {
-	return "shop_user_bill"
+	return "user_bill"
 }
 
 //增加支出流水

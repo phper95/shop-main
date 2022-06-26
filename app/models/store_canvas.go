@@ -14,7 +14,7 @@ type StoreCanvas struct {
 }
 
 func (StoreCanvas) TableName() string {
-	return "shop_store_canvas"
+	return "store_canvas"
 }
 
 func AddCanvas(m *StoreCanvas) error {

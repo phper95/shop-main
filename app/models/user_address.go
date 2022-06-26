@@ -22,7 +22,7 @@ type UserSystemCity struct {
 }
 
 func (UserSystemCity) TableName() string {
-	return "shop_user_address"
+	return "user_address"
 }
 
 // get all

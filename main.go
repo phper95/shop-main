@@ -18,7 +18,7 @@ import (
 )
 
 func init() {
-	global.Shop_VP = base.Viper()
+	global.LoadConfig()
 	global.LOG = base.SetupLogger()
 	models.Setup()
 	logging.Setup()

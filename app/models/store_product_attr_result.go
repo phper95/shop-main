@@ -20,7 +20,7 @@ type StoreProductAttrResult struct {
 }
 
 func (StoreProductAttrResult) TableName() string {
-	return "shop_store_product_attr_result"
+	return "store_product_attr_result"
 }
 
 func GetProductAttrResult(productId int64) map[string]interface{} {

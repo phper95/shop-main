@@ -17,7 +17,7 @@ type StoreCategory struct {
 }
 
 func (StoreCategory) TableName() string {
-	return "shop_store_category"
+	return "store_category"
 }
 
 func GetAllCates(maps interface{}) []StoreCategory {

@@ -24,7 +24,7 @@ type StoreProductReply struct {
 }
 
 func (StoreProductReply) TableName() string {
-	return "shop_store_product_reply"
+	return "store_product_reply"
 }
 
 // get all

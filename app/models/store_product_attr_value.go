@@ -38,7 +38,7 @@ type StoreProductAttrValue struct {
 }
 
 func (StoreProductAttrValue) TableName() string {
-	return "shop_store_product_attr_value"
+	return "store_product_attr_value"
 }
 
 func GetAttrValueByProductIdAndSku(productId int64, sku string) *StoreProductAttrValue {

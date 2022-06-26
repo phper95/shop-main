@@ -19,7 +19,7 @@ type StoreOrderStatus struct {
 }
 
 func (StoreOrderStatus) TableName() string {
-	return "shop_store_order_status"
+	return "store_order_status"
 }
 
 func AddStoreOrderStatus(tx *gorm.DB, oid int64, change, msg string) error {

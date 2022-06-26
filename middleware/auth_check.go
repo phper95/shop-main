@@ -80,7 +80,7 @@ func Jwt() gin.HandlerFunc {
 		}
 
 		//casbin check
-		cb := runtime.Runtime.GetCasbinKey(constant.Shop_CASBIN)
+		cb := runtime.Runtime.GetCasbinKey(constant.CASBIN)
 
 		for _, roleName := range usr.Roles {
 			//超级管理员过滤掉

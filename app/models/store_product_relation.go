@@ -15,7 +15,7 @@ type StoreProductRelation struct {
 }
 
 func (StoreProductRelation) TableName() string {
-	return "shop_store_product_relation"
+	return "store_product_relation"
 }
 
 // get all

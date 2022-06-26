@@ -155,13 +155,13 @@ func RegressionStock(tx *gorm.DB, order *ordervo.StoreOrder) error {
 	orderInfo := HandleOrder(order)
 	cartInfoList := orderInfo.CartInfo
 	for _, vo := range cartInfoList {
-		err = tx.Exec("update shop_store_product_attr_value set stock=stock + ?, sales=sales - ?"+
+		err = tx.Exec("update store_product_attr_value set stock=stock + ?, sales=sales - ?"+
 			" where product_id = ? and `unique` = ? and stock >= ?",
 			vo.CartNum, vo.CartNum, vo.ProductId, vo.ProductAttrUnique, vo.CartNum).Error
 		if err != nil {
 			return err
 		}
-		err = tx.Exec("update shop_store_product set stock=stock + ?, sales=sales - ?"+
+		err = tx.Exec("update store_product set stock=stock + ?, sales=sales - ?"+
 			" where id = ? and stock >= ?",
 			vo.CartNum, vo.CartNum, vo.ProductId, vo.CartNum).Error
 		if err != nil {
@@ -244,7 +244,7 @@ func (d *Order) TakeOrder() error {
 
 	//奖励积分
 	if order.GainIntegral > 0 {
-		err = tx.Exec("update shop_user set integral = integral + ?"+
+		err = tx.Exec("update user set integral = integral + ?"+
 			" where id = ?", order.Uid, order.GainIntegral).Error
 		if err != nil {
 			global.LOG.Error(err)
@@ -363,13 +363,13 @@ func (d *Order) CreateOrder() (*models.StoreOrder, error) {
 	orderInfoList := make([]models.StoreOrderCartInfo, 0)
 	//减库存加销量
 	for _, vo := range cartInfo {
-		err = tx.Exec("update shop_store_product_attr_value set stock=stock - ?, sales=sales + ?"+
+		err = tx.Exec("update store_product_attr_value set stock=stock - ?, sales=sales + ?"+
 			" where product_id = ? and `unique` = ? and stock >= ?",
 			vo.CartNum, vo.CartNum, vo.ProductId, vo.ProductAttrUnique, vo.CartNum).Error
 		if err != nil {
 			return nil, errors.New("库存扣减失败-00000")
 		}
-		err = tx.Exec("update shop_store_product set stock=stock - ?, sales=sales + ?"+
+		err = tx.Exec("update store_product set stock=stock - ?, sales=sales + ?"+
 			" where id = ? and stock >= ?",
 			vo.CartNum, vo.CartNum, vo.ProductId, vo.CartNum).Error
 		if err != nil {
@@ -397,7 +397,7 @@ func (d *Order) CreateOrder() (*models.StoreOrder, error) {
 	}
 
 	//增加状态
-	err = models.AddStoreOrderStatus(tx, storeOrder.Id, "shop_create_order", "订单生成")
+	err = models.AddStoreOrderStatus(tx, storeOrder.Id, "create_order", "订单生成")
 	if err != nil {
 		return nil, errors.New("订单创建失败-00002")
 	}

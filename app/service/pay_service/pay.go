@@ -108,7 +108,7 @@ func YuePay(orderId string, uid int64) error {
 	if userInfo.NowMoney < orderInfo.PayPrice {
 		return errors.New("余额不足")
 	}
-	err = tx.Exec("update shop_user set now_money=now_money - ?"+
+	err = tx.Exec("update user set now_money=now_money - ?"+
 		" where id = ?", orderInfo.PayPrice, uid).Error
 	if err != nil {
 		global.LOG.Error(err)
@@ -145,7 +145,7 @@ func PaySuccess(tx *gorm.DB, orderId, payType string) error {
 	}
 
 	//增加用户购买次数
-	err = tx.Exec("update shop_user set pay_count = pay_count + 1"+
+	err = tx.Exec("update user set pay_count = pay_count + 1"+
 		" where id = ?", orderInfo.Uid).Error
 	if err != nil {
 		global.LOG.Error(err)

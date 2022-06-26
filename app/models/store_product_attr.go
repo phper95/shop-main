@@ -18,7 +18,7 @@ type StoreProductAttr struct {
 }
 
 func (StoreProductAttr) TableName() string {
-	return "shop_store_product_attr"
+	return "store_product_attr"
 }
 
 func AddProductAttr(items []dto2.FormatDetail, productId int64) error {

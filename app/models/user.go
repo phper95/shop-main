@@ -40,7 +40,7 @@ type ShopUser struct {
 }
 
 func (ShopUser) TableName() string {
-	return "shop_user"
+	return "user"
 }
 
 // get all

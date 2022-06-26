@@ -17,7 +17,7 @@ type StoreOrderCartInfo struct {
 }
 
 func (StoreOrderCartInfo) TableName() string {
-	return "shop_store_order_cart_info"
+	return "store_order_cart_info"
 }
 
 func AddStoreOrderCartInfo(m *StoreOrderCartInfo) error {

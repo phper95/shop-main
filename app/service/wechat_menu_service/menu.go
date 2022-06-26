@@ -27,7 +27,7 @@ type Menu struct {
 
 func (d *Menu) GetAll() vo.ResultList {
 	maps := make(map[string]interface{})
-	maps["key"] = constant.Shop_WEICHAT_MENU
+	maps["key"] = constant.WEICHAT_MENU
 
 	data := models.GetWechatMenu(maps)
 	return vo.ResultList{Content: data, TotalElements: 0}
@@ -49,7 +49,7 @@ func (d *Menu) Insert() error {
 
 	result, _ := json.Marshal(d.Dto.Buttons)
 	model := models.WechatMenu{
-		Key:    constant.Shop_WEICHAT_MENU,
+		Key:    constant.WEICHAT_MENU,
 		Result: datatypes.JSON(result),
 	}
 	return models.UpdateByWechatMenu(&model)

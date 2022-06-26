@@ -19,7 +19,7 @@ type StoreProductRule struct {
 }
 
 func (StoreProductRule) TableName() string {
-	return "shop_store_product_rule"
+	return "store_product_rule"
 }
 
 // get all

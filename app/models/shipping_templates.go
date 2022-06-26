@@ -16,7 +16,7 @@ type ShippingTemplates struct {
 }
 
 func (ShippingTemplates) TableName() string {
-	return "shop_shipping_templates"
+	return "shipping_templates"
 }
 
 func AddShippingTemplates(m *ShippingTemplates) error {

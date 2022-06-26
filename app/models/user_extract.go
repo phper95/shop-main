@@ -25,7 +25,7 @@ type UserExtract struct {
 }
 
 func (UserExtract) TableName() string {
-	return "shop_user_extract"
+	return "user_extract"
 }
 
 func AddUserExtract(m *UserExtract) error {
