@@ -108,7 +108,7 @@ func GetAppDetailUser(c *gin.Context) (*models.ShopUser, error) {
 	}
 	token := strings.TrimSpace(mytoken[bearerLength:])
 	var key = constant.AppRedisPrefixAuth + token
-	val, err := cache.GetRedisClient(cache.DefaultRedisClient).Get(key)
+	val, err := cache.GetRedisClient(cache.DefaultRedisClient).GetStr(key)
 	if err != nil {
 		return nil, err
 	}
@@ -127,9 +127,7 @@ func RemoveAppUser(c *gin.Context) error {
 	mytoken := c.Request.Header.Get("Authorization")
 	token := strings.TrimSpace(mytoken[bearerLength:])
 	var key = constant.AppRedisPrefixAuth + token
-	_, err := cache.GetRedisClient(cache.DefaultRedisClient).Del(key)
-
-	return err
+	return cache.GetRedisClient(cache.DefaultRedisClient).Delete(key)
 }
 
 func GenerateToken(m *models.SysUser, d time.Duration) (string, error) {
@@ -235,7 +233,7 @@ func GetAdminDetailUser(c *gin.Context) *models.SysUser {
 	mytoken := c.Request.Header.Get("Authorization")
 	token := strings.TrimSpace(mytoken[bearerLength:])
 	var key = constant.RedisPrefixAuth + token
-	val, err := cache.GetRedisClient(cache.DefaultRedisClient).Get(key)
+	val, err := cache.GetRedisClient(cache.DefaultRedisClient).GetStr(key)
 	if err != nil {
 		global.LOG.Error("redis error ", err, "key", key, "cmd : Get", "client", cache.DefaultRedisClient)
 		return nil
@@ -252,7 +250,5 @@ func RemoveUser(c *gin.Context) error {
 	mytoken := c.Request.Header.Get("Authorization")
 	token := strings.TrimSpace(mytoken[bearerLength:])
 	var key = constant.RedisPrefixAuth + token
-	_, err := cache.GetRedisClient(cache.DefaultRedisClient).Del(key)
-
-	return err
+	return cache.GetRedisClient(cache.DefaultRedisClient).Delete(key)
 }

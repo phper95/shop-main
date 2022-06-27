@@ -3,8 +3,8 @@ module shop
 go 1.15
 
 require (
-	gitee.com/phper95/pkg/cache v0.0.0-20220627170834-9bff9f85ca7d
-	gitee.com/phper95/pkg/db v0.0.0-20220627170834-9bff9f85ca7d
+	gitee.com/phper95/pkg/cache v0.0.0-20220627172831-4d3847e7d246
+	gitee.com/phper95/pkg/db v0.0.0-20220627172831-4d3847e7d246
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/astaxie/beego v1.12.3
 	github.com/boombuler/barcode v1.0.1

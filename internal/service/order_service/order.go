@@ -623,7 +623,7 @@ func getCacheOrderInfo(uid int64, key string) (orderDto.Cache, error) {
 
 func delCacheOrderInfo(uid int64, key string) {
 	newKey := constant.OrderInfo + strconv.FormatInt(uid, 10) + key
-	_, err := cache.GetRedisClient(cache.DefaultRedisClient).Del(newKey)
+	err := cache.GetRedisClient(cache.DefaultRedisClient).Delete(newKey)
 	if err != nil {
 		global.LOG.Error("redis error ", err, "key", key, "cmd : Del", "client", cache.DefaultRedisClient)
 	}

@@ -104,7 +104,7 @@ func (u *User) Reg() error {
 	}
 	err = models.AddWechatUser(&uu)
 	//注册成功删除验证码缓存
-	cache.GetRedisClient(cache.DefaultRedisClient).Del(code)
+	cache.GetRedisClient(cache.DefaultRedisClient).Delete(code)
 	return err
 
 }
