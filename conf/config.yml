@@ -32,8 +32,6 @@ database:
 redis:
   host: '127.0.0.1:6379'
   password:
-  max_idle: 30
-  max_active: 30
   idle_timeout: 200
 
 zap:

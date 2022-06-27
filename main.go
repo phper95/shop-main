@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"gitee.com/phper95/pkg/cache"
+	"gitee.com/phper95/pkg/db"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v7"
 	"log"
 	"net/http"
 	"shop/internal/listen"
@@ -11,7 +14,6 @@ import (
 	"shop/pkg/global"
 	"shop/pkg/jwt"
 	"shop/pkg/logging"
-	"shop/pkg/redis"
 	"shop/pkg/wechat"
 	"shop/routers"
 	"time"
@@ -22,7 +24,21 @@ func init() {
 	global.LOG = base.SetupLogger()
 	models.Setup()
 	logging.Setup()
-	redis.Setup()
+
+	err := cache.InitRedis(cache.DefaultRedisClient, &redis.Options{
+		Addr:        global.CONFIG.Redis.Host,
+		Password:    global.CONFIG.Redis.Password,
+		IdleTimeout: global.CONFIG.Redis.IdleTimeout,
+	}, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	err = db.InitMysqlClient(db.DefaultClient, global.CONFIG.Database.User,
+		global.CONFIG.Database.Password, global.CONFIG.Database.Host, global.CONFIG.Database.Name)
+	if err != nil {
+		panic(err)
+	}
 	jwt.Setup()
 	listen.Setup()
 	wechat.InitWechat()

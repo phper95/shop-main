@@ -35,12 +35,11 @@ func (e *LoginController) Login(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
-
-	d := time.Now().Add(time.Hour * 24 * 100)
-	token, _ := jwt.GenerateAppToken(user, d)
+	ttl := time.Hour * 24 * 100
+	token, _ := jwt.GenerateAppToken(user, ttl)
 	appG.Response(http.StatusOK, constant.SUCCESS, gin.H{
 		"token":        token,
-		"expires_time": d.Unix(),
+		"expires_time": time.Now().Add(ttl).Unix(),
 	})
 
 }

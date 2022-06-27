@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gitee.com/phper95/pkg/cache"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"shop/internal/models"
@@ -11,7 +12,6 @@ import (
 	"shop/pkg/constant"
 	"shop/pkg/global"
 	"shop/pkg/logging"
-	"shop/pkg/redis"
 	"strconv"
 	"strings"
 	"time"
@@ -38,12 +38,12 @@ func Setup() {
 	jwtSecret = []byte(global.CONFIG.App.JwtSecret)
 }
 
-func GenerateAppToken(m *models.ShopUser, d time.Time) (string, error) {
+func GenerateAppToken(m *models.ShopUser, d time.Duration) (string, error) {
 	m.Password = ""
 	//m.Permissions = []string{}
 	//expireTime := time.Now().Add(d)
 	stdClaims := jwt.StandardClaims{
-		ExpiresAt: d.Unix(),
+		ExpiresAt: time.Now().Add(d).Unix(),
 		Id:        strconv.FormatInt(m.Id, 10),
 		Issuer:    "shopAppGo",
 	}
@@ -68,7 +68,7 @@ func GenerateAppToken(m *models.ShopUser, d time.Time) (string, error) {
 	//set redis
 	var key = constant.AppRedisPrefixAuth + tokenString
 	json, _ := json.Marshal(m)
-	redis.SetEx(key, string(json), d.Unix())
+	cache.GetRedisClient(cache.DefaultRedisClient).Set(key, string(json), d)
 
 	return tokenString, err
 }
@@ -108,10 +108,12 @@ func GetAppDetailUser(c *gin.Context) (*models.ShopUser, error) {
 	}
 	token := strings.TrimSpace(mytoken[bearerLength:])
 	var key = constant.AppRedisPrefixAuth + token
-	userMap, err := redis.GetMap(key)
+	val, err := cache.GetRedisClient(cache.DefaultRedisClient).Get(key)
 	if err != nil {
 		return nil, err
 	}
+	userMap := make(map[string]string)
+	userMap[key] = val
 	jsonStr := userMap[key]
 	user := &models.ShopUser{}
 	err = json.Unmarshal([]byte(jsonStr), user)
@@ -125,17 +127,15 @@ func RemoveAppUser(c *gin.Context) error {
 	mytoken := c.Request.Header.Get("Authorization")
 	token := strings.TrimSpace(mytoken[bearerLength:])
 	var key = constant.AppRedisPrefixAuth + token
-	_, err := redis.Delete(key)
+	_, err := cache.GetRedisClient(cache.DefaultRedisClient).Del(key)
 
 	return err
 }
 
 func GenerateToken(m *models.SysUser, d time.Duration) (string, error) {
 	m.Password = ""
-	//m.Permissions = []string{}
-	expireTime := time.Now().Add(d)
 	stdClaims := jwt.StandardClaims{
-		ExpiresAt: expireTime.Unix(),
+		ExpiresAt: time.Now().Add(d).Unix(),
 		Id:        strconv.FormatInt(m.Id, 10),
 		Issuer:    "shopGo",
 	}
@@ -173,7 +173,7 @@ func GenerateToken(m *models.SysUser, d time.Duration) (string, error) {
 	//set redis
 	var key = constant.RedisPrefixAuth + tokenString
 	json, _ := json.Marshal(m)
-	redis.SetEx(key, string(json), expireTime.Unix())
+	cache.GetRedisClient(cache.DefaultRedisClient).Set(key, string(json), d)
 
 	return tokenString, err
 }
@@ -235,7 +235,13 @@ func GetAdminDetailUser(c *gin.Context) *models.SysUser {
 	mytoken := c.Request.Header.Get("Authorization")
 	token := strings.TrimSpace(mytoken[bearerLength:])
 	var key = constant.RedisPrefixAuth + token
-	userMap, _ := redis.GetMap(key)
+	val, err := cache.GetRedisClient(cache.DefaultRedisClient).Get(key)
+	if err != nil {
+		global.LOG.Error("redis error ", err, "key", key, "cmd : Get", "client", cache.DefaultRedisClient)
+		return nil
+	}
+	userMap := make(map[string]string)
+	userMap[key] = val
 	jsonStr := userMap[key]
 	user := &models.SysUser{}
 	json.Unmarshal([]byte(jsonStr), user)
@@ -246,7 +252,7 @@ func RemoveUser(c *gin.Context) error {
 	mytoken := c.Request.Header.Get("Authorization")
 	token := strings.TrimSpace(mytoken[bearerLength:])
 	var key = constant.RedisPrefixAuth + token
-	_, err := redis.Delete(key)
+	_, err := cache.GetRedisClient(cache.DefaultRedisClient).Del(key)
 
 	return err
 }

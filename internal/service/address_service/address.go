@@ -3,12 +3,12 @@ package address_service
 import (
 	"encoding/json"
 	"errors"
+	"gitee.com/phper95/pkg/cache"
 	"shop/internal/models"
 	"shop/internal/models/vo"
 	"shop/internal/params"
 	"shop/pkg/constant"
 	"shop/pkg/global"
-	"shop/pkg/redis"
 	"shop/pkg/util"
 )
 
@@ -132,15 +132,23 @@ func (d *Address) AddOrUpdate() (int64, error) {
 //get city list
 func (d *Address) GetCitys() []models.SystemCity {
 	key := constant.CityList
-	if b, err := redis.Get(key); err == nil {
+	val, err := cache.GetRedisClient(cache.DefaultRedisClient).GetStr(key)
+	if err != nil {
+		global.LOG.Error("redis error ", err, "key", key, "cmd : Get", "client", cache.DefaultRedisClient)
+	} else {
 		var city []models.SystemCity
-		err = json.Unmarshal(b, &city)
-		return city
+		err = json.Unmarshal([]byte(val), &city)
+		if err != nil {
+			global.LOG.Error(" json.Unmarshal error val : ", val)
+		}
+		if len(city) > 0 {
+			return city
+		}
 	}
 	maps := make(map[string]interface{})
 	maps["is_show"] = 1
 	list := models.GetAllSystemCity(maps)
-	redis.Set(key, list, 0)
+	cache.GetRedisClient(cache.DefaultRedisClient).Set(key, list, 0)
 	return list
 }
 

@@ -3,6 +3,7 @@ package wechat_user_service
 import (
 	"encoding/json"
 	"errors"
+	"gitee.com/phper95/pkg/cache"
 	"github.com/jinzhu/copier"
 	"github.com/silenceper/wechat/v2/officialaccount/user"
 	"gorm.io/datatypes"
@@ -16,7 +17,6 @@ import (
 	"shop/pkg/constant"
 	userEnum "shop/pkg/enums/user"
 	"shop/pkg/global"
-	"shop/pkg/redis"
 	"shop/pkg/util"
 	"time"
 )
@@ -83,7 +83,10 @@ func (u *User) Reg() error {
 		return errors.New("用户已经存在")
 	}
 	codeKey := constant.SmsCode + u.RegParam.Account
-	code := redis.GetString(codeKey)
+	code, err := cache.GetRedisClient(cache.DefaultRedisClient).GetStr(codeKey)
+	if err != nil {
+		global.LOG.Error("redis error", "key : ", codeKey, "cmd : get")
+	}
 	if code != u.RegParam.Captcha {
 		return errors.New("验证码不对")
 	}
@@ -101,7 +104,7 @@ func (u *User) Reg() error {
 	}
 	err = models.AddWechatUser(&uu)
 	//注册成功删除验证码缓存
-	redis.Delete(code)
+	cache.GetRedisClient(cache.DefaultRedisClient).Del(code)
 	return err
 
 }
@@ -119,14 +122,24 @@ func (u *User) Verify() (string, error) {
 	}
 
 	codeKey := constant.SmsCode + u.VerityParam.Phone
-	if redis.Exists(codeKey) {
-		return "", errors.New("10分钟有效:" + redis.GetString(codeKey))
+	exists, err := cache.GetRedisClient(cache.DefaultRedisClient).Exists(codeKey)
+	if err != nil {
+		global.LOG.Error("redis error ", err, "key", codeKey, "cmd : Exists", "client", cache.DefaultRedisClient)
+	}
+	codeVal, err := cache.GetRedisClient(cache.DefaultRedisClient).GetStr(codeKey)
+	if err != nil {
+		global.LOG.Error("redis error ", err, "key", codeKey, "cmd : Get", "client", cache.DefaultRedisClient)
+	}
+	if exists {
+		return "", errors.New("10分钟有效:" + codeVal)
 	}
 
 	code := util.RandomNumber(constant.SmsLength)
-	expireTime := time.Now().Add(time.Minute * 10)
-	redis.SetEx(codeKey, code, expireTime.Unix())
-
+	expireTime := time.Minute * 10
+	err = cache.GetRedisClient(cache.DefaultRedisClient).Set(codeKey, code, expireTime)
+	if err != nil {
+		global.LOG.Error("redis error ", err, "key", codeKey, "cmd : Set", "client", cache.DefaultRedisClient)
+	}
 	//此处发送阿里云短信
 	//测试阶段直接把验证码返回
 	return "测试阶段验证码为：" + code, nil

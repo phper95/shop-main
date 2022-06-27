@@ -3,6 +3,7 @@ package order_service
 import (
 	"encoding/json"
 	"errors"
+	"gitee.com/phper95/pkg/cache"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
 	"github.com/segmentio/ksuid"
@@ -20,7 +21,6 @@ import (
 	"shop/pkg/constant"
 	orderEnum "shop/pkg/enums/order"
 	"shop/pkg/global"
-	"shop/pkg/redis"
 	"shop/pkg/util"
 	"strconv"
 	"strings"
@@ -600,30 +600,33 @@ func (d *Order) ConfirmOrder() (*ordervo.ConfirmOrder, error) {
 func cacheOrderInfo(uid int64, cartInfo []cartVo.Cart, priceGroup orderDto.PriceGroup, other orderDto.Other) string {
 	uuid := ksuid.New()
 	key := uuid.String()
-	cache := orderDto.Cache{
+	orderCache := orderDto.Cache{
 		CartInfo:   cartInfo,
 		PriceGroup: priceGroup,
 		Other:      other,
 	}
 	newKey := constant.OrderInfo + strconv.FormatInt(uid, 10) + key
-	redis.Set(newKey, cache, 1000)
+	cache.GetRedisClient(cache.DefaultRedisClient).Set(newKey, orderCache, 1000)
 	return key
 }
 
 func getCacheOrderInfo(uid int64, key string) (orderDto.Cache, error) {
 	newKey := constant.OrderInfo + strconv.FormatInt(uid, 10) + key
-	b, error := redis.Get(newKey)
-	if error != nil {
-		return orderDto.Cache{}, error
+	val, err := cache.GetRedisClient(cache.DefaultRedisClient).GetStr(newKey)
+	if err != nil {
+		return orderDto.Cache{}, err
 	}
-	var cache orderDto.Cache
-	json.Unmarshal(b, &cache)
-	return cache, nil
+	var orderCache orderDto.Cache
+	json.Unmarshal([]byte(val), &orderCache)
+	return orderCache, nil
 }
 
 func delCacheOrderInfo(uid int64, key string) {
 	newKey := constant.OrderInfo + strconv.FormatInt(uid, 10) + key
-	redis.Delete(newKey)
+	_, err := cache.GetRedisClient(cache.DefaultRedisClient).Del(newKey)
+	if err != nil {
+		global.LOG.Error("redis error ", err, "key", key, "cmd : Del", "client", cache.DefaultRedisClient)
+	}
 }
 
 func getOrderPriceGroup(cartInfo []cartVo.Cart, userAddress *models.SystemCity) orderDto.PriceGroup {

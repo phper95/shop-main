@@ -3,6 +3,8 @@ module shop
 go 1.15
 
 require (
+	gitee.com/phper95/pkg/cache v0.0.0-20220627170834-9bff9f85ca7d
+	gitee.com/phper95/pkg/db v0.0.0-20220627170834-9bff9f85ca7d
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/astaxie/beego v1.12.3
 	github.com/boombuler/barcode v1.0.1
@@ -16,6 +18,7 @@ require (
 	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-pay/gopay v1.5.77
 	github.com/go-playground/validator/v10 v10.9.0 // indirect
+	github.com/go-redis/redis/v7 v7.4.1
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
@@ -46,9 +49,8 @@ require (
 	github.com/swaggo/swag v1.7.4
 	github.com/tebeka/strftime v0.1.5 // indirect
 	github.com/ttlv/kdniao v0.0.0-20220119131043-fcaba08b1873
-	github.com/ugorji/go v1.2.6 // indirect; indi rect
 	github.com/unknwon/com v1.0.1
-	go.uber.org/zap v1.19.1
+	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29
 	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
@@ -56,8 +58,8 @@ require (
 	golang.org/x/tools v0.1.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/ini.v1 v1.63.2 // indirect
-	gorm.io/datatypes v1.0.4
-	gorm.io/driver/mysql v1.2.1
-	gorm.io/gorm v1.22.4
-	gorm.io/plugin/soft_delete v1.0.4
+	gorm.io/datatypes v1.0.6
+	gorm.io/driver/mysql v1.3.2
+	gorm.io/gorm v1.23.2
+	gorm.io/plugin/soft_delete v1.1.0
 )
