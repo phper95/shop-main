@@ -5,9 +5,9 @@ import (
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"net/http"
-	"shop/app/controllers/admin"
-	"shop/app/controllers/front"
 	_ "shop/docs"
+	"shop/internal/controllers/admin"
+	"shop/internal/controllers/front"
 	"shop/middleware"
 	"shop/pkg/upload"
 )

@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
-	"shop/app/models"
+	"shop/internal/models"
 	"shop/pkg/jwt"
 	"shop/pkg/logging"
 )

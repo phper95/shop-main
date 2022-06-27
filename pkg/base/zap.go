@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-//@author: [liuhongdi](https://github.com/liuhongdi)
+//@author: [phper95](https://github.com/phper95)
 
 func SetupLogger() *zap.SugaredLogger {
 	filepath := global.CONFIG.Zap.LogFilePath

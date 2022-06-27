@@ -56,6 +56,7 @@
       - wechat_menu_serive 微信公众号菜单服务
       ......
 - conf 公共配置
+  -config.yml yml配置文件
 - docs swagger
 - middleware 中间件
     - AuthCheck.go
@@ -72,7 +73,6 @@
 - routere 路由
 - logs 日志存放
 - runtime 资源目录
-- config.yml yml配置
 ```
 
 ## 环境要求
@@ -104,113 +104,64 @@ npm、ES6、vue-cli、vue-router、vuex、element-ui
 7、本地运行go run main.go
 
 8、线上部署： 
-```
-#### pc用户端配置、启动、部署
-```
-1、打开后端go代码目录pc-vue/,然后解压
-
-2、npm install
-
-3、./api/index.js 配置api地址
-
-4。npm run dev 启动即可
-
-5、线上部署：npm run build 然后上传./dist/下编译后的文件到web服务器即可
 
 ```
-#### 功能说明
-pc端效果图：
 
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin/raw/master/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202205071646055.jpg) |
-|--|
+## 权限检验说明
 
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin/raw/master/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202205071646056.jpg) |
-|--|
+```
+//权限校验中间件路径./middleware/authcheck.go 里面 
+//注意下面注释的代码块，此处用于项目演示，请注意删除
 
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin-book/raw/master/pc03.png "suicai.png") |
-|--|
+func Jwt() gin.HandlerFunc {
+return func(c *gin.Context) {
+var data interface{}
+var appG = app.Gin{C: c}
 
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin-book/raw/master/pc04.png "suicai.png") |
-|--|
+      url := c.Request.URL.Path
 
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin/raw/master/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202205071646053.jpg) |
-|--|
+      method := strings.ToLower(c.Request.Method)
+      //部署线上开启
+      //prohibit := "post,put,delete"
+      //if url != "/admin/auth/logout" && strings.Contains(prohibit,method) {
+      // ctx.Output.JSON(controllers.ErrMsg("演示环境禁止操作",40006),
+      //    true,true)
+      // return
+      //}
 
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin/raw/master/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202205071646054.jpg) |
-|--|
-
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin/raw/master/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202205071646052.jpg) |
-|--|
-
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin/raw/master/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202205071646053.jpg) |
-|--|
-
-
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin/raw/master/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202205071646054.jpg) |
-|--|
-
-1、商品分类
-| ![输入图片说明](https://images.gitee.com/uploads/images/2021/1009/110639_af31d4e3_477893.png "shop1.png") |
-|--|
-| ![输入图片说明](https://images.gitee.com/uploads/images/2021/1009/110741_52c0ec39_477893.png "fenlei2.png") |
-|--|
-2、商品sku
-| ![输入图片说明](https://images.gitee.com/uploads/images/2021/1009/110820_ca7f0034_477893.png "guige1.png") |
-|--|
-| ![输入图片说明](https://images.gitee.com/uploads/images/2021/1009/110830_c5221dae_477893.png "guige2.png") |
-3、商品管理
-|  ![输入图片说明](https://images.gitee.com/uploads/images/2021/1009/110908_81785443_477893.png "shangpin1.png")|
-|--|
-| ![输入图片说明](https://images.gitee.com/uploads/images/2021/1009/110917_2dbcfe03_477893.png "shangpin2.png") |
-| ![输入图片说明](https://images.gitee.com/uploads/images/2021/1009/110938_0aee30d6_477893.png "shangpin3.png") |
-|--|
-4、微信公众号
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin/raw/master/weixin00.png)  |
-|--|
-
-5、系统用户
-| ![输入图片说明](https://images.gitee.com/uploads/images/2021/1009/111101_7cc3c7f0_477893.png "yonghu.png") |
-|--|
-6、系统角色
-| ![输入图片说明](https://images.gitee.com/uploads/images/2021/1009/111136_bdc744be_477893.png "juese.png") |
-|--|
-7、系统菜单
-| ![输入图片说明](https://images.gitee.com/uploads/images/2021/1009/111202_9ffbd62a_477893.png "caidan1.png") |
-|--|
-8、订单
-| ![输入图片说明](https://gitee.com/guchengwuyue/shop-gin-book/raw/master/h1.png "caidan1.png") |
-|--|
+      mytoken := c.Request.Header.Get("Authorization")
+      if len(mytoken) < bearerLength {
+         appG.Response(http.StatusUnauthorized,constant.ERROR_AUTH,data)
+         c.Abort()
+         return
+      }
+```
 
 
 
-#### 技术选型
-* 1 后端使用技术
-    * 1.1 gin
-    * 1.2 jwt
-    * 1.3 redis
-    * 1.5 Mysql8
-    * 1.6 Gorm
-    * 1.7 copier
-    * 1.8 ksuid
-    * 1.9 Redis
-    * 1.10 swagger
-    * 1.11 Casbin
-    * 1.12 viper
-    * 1.13 zap
-    * 1.14 wecchat
-    * 1.15 gopay
-    
-* 前端使用技术
-    * 2.1 Vue 全家桶
-    * 2.2 Element
+## 后端技术选型
+* gin
+* jwt
+* redis
+* Mysql8
+* Gorm
+* copier
+* ksuid
+* Redis
+*  swagger
+*  Casbin
+*  viper
+*  zap
+*  wecchat
+*  gopay
+## 前端技术选型
+* npm
+* ES6
+* vue-cli
+* vue-router
+* vuex
+* element-ui 
 
-#### 特别鸣谢
-
-- go-gin-example:https://github.com/EDDYCJY/go-gin-example
-- gorm:https://gorm.io/
-- casbin:https://casbin.org/
-- wechat: https://github.com/silenceper/wechat
-- gopay: https://github.com/go-pay/gopay
-- vue:https://github.com/vuejs/vue
-- element:https://github.com/ElemeFE/element
-
+## 账号密码
+前台账号密码:
+后台账号密码: admin/123456

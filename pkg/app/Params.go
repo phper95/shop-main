@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/unknwon/com"
-	"shop/app/models/dto"
+	"shop/internal/models/dto"
 )
 
 func GetParams(c *gin.Context) dto.BasePage {

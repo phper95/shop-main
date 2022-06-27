@@ -4,6 +4,7 @@ server:
   read-timeout: 60
   write-timeout: 60
 app:
+  domain: localhost
   page-size: 10
   jwt-secret: shop
   prefix-url: 'http://127.0.0.1:8000'

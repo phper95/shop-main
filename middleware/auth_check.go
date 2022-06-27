@@ -34,7 +34,7 @@ func AppJwt() gin.HandlerFunc {
 			return
 		}
 
-		c.Set(constant.APP_AUTH_USER, usr)
+		c.Set(constant.AppAuthUser, usr)
 
 		c.Next()
 
