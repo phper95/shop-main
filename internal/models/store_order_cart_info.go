@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type StoreOrderCartInfo struct {
 	Id           int64  `gorm:"primary_key" json:"id"`
 	Oid          int64  `json:"oid"`
@@ -17,7 +19,7 @@ func (StoreOrderCartInfo) TableName() string {
 
 func AddStoreOrderCartInfo(m *StoreOrderCartInfo) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -26,7 +28,7 @@ func AddStoreOrderCartInfo(m *StoreOrderCartInfo) error {
 
 func UpdateByStoreOrderCartInfo(m *StoreOrderCartInfo) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -36,7 +38,7 @@ func UpdateByStoreOrderCartInfo(m *StoreOrderCartInfo) error {
 
 func DelByStoreOrderCartInfo(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&StoreOrderCartInfo{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&StoreOrderCartInfo{}).Error
 	if err != nil {
 		return err
 	}

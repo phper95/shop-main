@@ -1,6 +1,9 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"shop/pkg/global"
+)
 
 type UserBill struct {
 	Uid      int64   `json:"uid"`
@@ -54,7 +57,7 @@ func Income(tx *gorm.DB, uid int64, title, category, typestr, mark, linkId strin
 
 func AddUserBill(m *UserBill) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -63,7 +66,7 @@ func AddUserBill(m *UserBill) error {
 
 func UpdateByUserBill(m *UserBill) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -73,7 +76,7 @@ func UpdateByUserBill(m *UserBill) error {
 
 func DelByUserBill(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&UserBill{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&UserBill{}).Error
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package models
 
 import (
 	"gorm.io/datatypes"
+	"shop/pkg/global"
 	"time"
 )
 
@@ -45,15 +46,15 @@ func GetAllWechatUser(pageNUm int, pageSize int, maps interface{}) (int64, []Sho
 		data  []ShopUser
 	)
 
-	db.Model(&ShopUser{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
+	global.Db.Model(&ShopUser{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
 
 	return total, data
 }
 
 func AddWechatUser(m *ShopUser) error {
 	var err error
-	if err = db.Select("username", "nickname", "password", "real_name", "avatar", "add_ip", "last_ip", "user_type", "wx_profile").Create(m).Error; err != nil {
+	if err = global.Db.Select("username", "nickname", "password", "real_name", "avatar", "add_ip", "last_ip", "user_type", "wx_profile").Create(m).Error; err != nil {
 		return err
 	}
 
@@ -62,7 +63,7 @@ func AddWechatUser(m *ShopUser) error {
 
 func UpdateByWechatUsere(id int64, m *ShopUser) error {
 	var err error
-	err = db.Model(&ShopUser{}).Where("id = ?", id).Updates(m).Error
+	err = global.Db.Model(&ShopUser{}).Where("id = ?", id).Updates(m).Error
 	if err != nil {
 		return err
 	}
@@ -72,7 +73,7 @@ func UpdateByWechatUsere(id int64, m *ShopUser) error {
 
 func DelByWechatUser(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&ShopUser{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&ShopUser{}).Error
 	if err != nil {
 		return err
 	}

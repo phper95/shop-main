@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"gitee.com/phper95/pkg/cache"
 	"gitee.com/phper95/pkg/db"
+	"gitee.com/phper95/pkg/mq"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
 	"log"
 	"net/http"
 	"shop/internal/listen"
-	"shop/internal/models"
 	"shop/pkg/base"
+	"shop/pkg/casbin"
 	"shop/pkg/global"
 	"shop/pkg/jwt"
 	"shop/pkg/logging"
@@ -21,9 +22,10 @@ import (
 
 func init() {
 	global.LoadConfig()
+
 	global.LOG = base.SetupLogger()
-	models.Setup()
-	logging.Setup()
+
+	logging.Init()
 
 	err := cache.InitRedis(cache.DefaultRedisClient, &redis.Options{
 		Addr:        global.CONFIG.Redis.Host,
@@ -39,9 +41,20 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	jwt.Setup()
-	listen.Setup()
+	global.Db = db.GetMysqlClient(db.DefaultClient).DB
+
+	casbin.InitCasbin(global.Db)
+
+	jwt.Init()
+
+	listen.Init()
+
 	wechat.InitWechat()
+
+	err = mq.InitAsyncKafkaProducer(mq.DefaultKafkaSyncProducer, global.CONFIG.Kafka.Hosts, nil)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {

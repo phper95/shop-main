@@ -1,6 +1,9 @@
 package models
 
-import "github.com/astaxie/beego/validation"
+import (
+	"github.com/astaxie/beego/validation"
+	"shop/pkg/global"
+)
 
 type WechatArticle struct {
 	Title     string `json:"title"`
@@ -38,15 +41,15 @@ func GetAllWechatArticle(pageNUm int, pageSize int, maps interface{}) (int64, []
 		data  []WechatArticle
 	)
 
-	db.Model(&WechatArticle{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
+	global.Db.Model(&WechatArticle{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
 
 	return total, data
 }
 
 func AddWechatArticle(m *WechatArticle) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -55,7 +58,7 @@ func AddWechatArticle(m *WechatArticle) error {
 
 func UpdateByWechatArticle(m *WechatArticle) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -65,7 +68,7 @@ func UpdateByWechatArticle(m *WechatArticle) error {
 
 func DelByWechatArticle(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&WechatArticle{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&WechatArticle{}).Error
 	if err != nil {
 		return err
 	}

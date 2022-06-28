@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type StoreCanvas struct {
 	Terminal int    `json:"terminal"`
 	Json     string `json:"json"`
@@ -14,7 +16,7 @@ func (StoreCanvas) TableName() string {
 
 func AddCanvas(m *StoreCanvas) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -23,7 +25,7 @@ func AddCanvas(m *StoreCanvas) error {
 
 func UpdateByCanvas(m *StoreCanvas) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -33,7 +35,7 @@ func UpdateByCanvas(m *StoreCanvas) error {
 
 func DelByCanvas(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&StoreCanvas{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&StoreCanvas{}).Error
 	if err != nil {
 		return err
 	}

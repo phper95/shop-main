@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type ShippingTemplatesRegion struct {
 	Id            int64   `gorm:"primary_key" json:"id"`
 	ProvinceId    int     `json:"province_id"`
@@ -19,7 +21,7 @@ func (ShippingTemplatesRegion) TableName() string {
 
 func AddShippingTemplatesRegion(m *ShippingTemplatesRegion) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -28,7 +30,7 @@ func AddShippingTemplatesRegion(m *ShippingTemplatesRegion) error {
 
 func UpdateByShippingTemplatesRegion(m *ShippingTemplatesRegion) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -38,7 +40,7 @@ func UpdateByShippingTemplatesRegion(m *ShippingTemplatesRegion) error {
 
 func DelByShippingTemplatesRegion(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&ShippingTemplatesRegion{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&ShippingTemplatesRegion{}).Error
 	if err != nil {
 		return err
 	}

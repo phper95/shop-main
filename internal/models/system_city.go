@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type SystemCity struct {
 	Id         int64        `gorm:"primary_key" json:"id"`
 	CityId     int64        `json:"v"`
@@ -20,7 +22,7 @@ func (SystemCity) TableName() string {
 
 func GetAllSystemCity(maps interface{}) []SystemCity {
 	var data []SystemCity
-	db.Where(maps).Find(&data)
+	global.Db.Where(maps).Find(&data)
 	return RecursionCityList(data, 0)
 }
 
@@ -39,7 +41,7 @@ func RecursionCityList(data []SystemCity, pid int64) []SystemCity {
 
 func AddSystemCity(m *SystemCity) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -48,7 +50,7 @@ func AddSystemCity(m *SystemCity) error {
 
 func UpdateBySystemCity(m *SystemCity) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -58,7 +60,7 @@ func UpdateBySystemCity(m *SystemCity) error {
 
 func DelBySystemCity(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&SystemCity{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&SystemCity{}).Error
 	if err != nil {
 		return err
 	}

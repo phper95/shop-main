@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type ShippingTemplatesFree struct {
 	Id         int64   `gorm:"primary_key" json:"id"`
 	ProvinceId int     `json:"province_id"`
@@ -17,7 +19,7 @@ func (ShippingTemplatesFree) TableName() string {
 
 func AddShippingTemplatesFree(m *ShippingTemplatesFree) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -26,7 +28,7 @@ func AddShippingTemplatesFree(m *ShippingTemplatesFree) error {
 
 func UpdateByShippingTemplatesFree(m *ShippingTemplatesFree) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -36,7 +38,7 @@ func UpdateByShippingTemplatesFree(m *ShippingTemplatesFree) error {
 
 func DelByShippingTemplatesFree(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&ShippingTemplatesFree{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&ShippingTemplatesFree{}).Error
 	if err != nil {
 		return err
 	}

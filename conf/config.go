@@ -6,6 +6,7 @@ type Config struct {
 	App      App      `mapstructure:"app" yaml:"app"`
 	Database Database `mapstructure:"database" yaml:"database"`
 	Redis    Redis    `mapstructure:"redis" yaml:"redis"`
+	Kafka    Kafka    `mapstructure:"kafka" yaml:"kafka"`
 	Server   Server   `mapstructure:"server" yaml:"server"`
 	Zap      Zap      `mapstructure:"zap" yaml:"zap"`
 	Wechat   Wechat   `mapstructure:"wechat" yaml:"wechat"`
@@ -61,6 +62,10 @@ type Zap struct {
 	LogInfoFileName string `mapstructure:"log-info-filename" yaml:"log-info-filename"`
 	LogWarnFileName string `mapstructure:"log-warn-filename" yaml:"log-warn-filename"`
 	LogFileExt      string `mapstructure:"log-fiile-ext" yaml:"log-fiile-ext"`
+}
+
+type Kafka struct {
+	Hosts []string `mapstructure:"hosts" yaml:"hosts"`
 }
 
 type Wechat struct {

@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	dto2 "shop/internal/service/product_service/dto"
+	"shop/pkg/global"
 	"shop/pkg/logging"
 	"time"
 )
@@ -23,7 +24,7 @@ func GetProductAttrResult(productId int64) map[string]interface{} {
 		result StoreProductAttrResult
 		data   map[string]interface{}
 	)
-	db.Where("product_id = ?", productId).First(&result)
+	global.Db.Where("product_id = ?", productId).First(&result)
 
 	e := json.Unmarshal([]byte(result.Result), &data)
 	if e != nil {
@@ -35,7 +36,7 @@ func GetProductAttrResult(productId int64) map[string]interface{} {
 
 func AddProductAttrResult(items []dto2.FormatDetail, attrs []dto2.ProductFormat, productId int64) error {
 	var err error
-	tx := db.Begin()
+	tx := global.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -49,7 +50,7 @@ func AddProductAttrResult(items []dto2.FormatDetail, attrs []dto2.ProductFormat,
 		"value": attrs,
 	}
 	b, _ := json.Marshal(mapData)
-	db.Model(&StoreProductAttrResult{}).Where("product_id = ?", productId).Count(&count)
+	global.Db.Model(&StoreProductAttrResult{}).Where("product_id = ?", productId).Count(&count)
 	if count > 0 {
 		err = DelByProductAttrResult(productId)
 		if err != nil {
@@ -69,6 +70,6 @@ func AddProductAttrResult(items []dto2.FormatDetail, attrs []dto2.ProductFormat,
 }
 
 func DelByProductAttrResult(productId int64) (err error) {
-	err = db.Where("product_id = ?", productId).Delete(StoreProductAttrResult{}).Error
+	err = global.Db.Where("product_id = ?", productId).Delete(StoreProductAttrResult{}).Error
 	return err
 }

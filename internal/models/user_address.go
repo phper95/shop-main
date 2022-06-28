@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type UserSystemCity struct {
 	Uid       int64  `json:"uid"`
 	RealName  string `json:"realName"`
@@ -27,15 +29,15 @@ func GetAllUserAddress(pageNUm int, pageSize int, maps interface{}) (int64, []Us
 		data  []UserSystemCity
 	)
 
-	db.Model(&UserSystemCity{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
+	global.Db.Model(&UserSystemCity{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
 
 	return total, data
 }
 
 func AddUserAddress(m *UserSystemCity) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -44,7 +46,7 @@ func AddUserAddress(m *UserSystemCity) error {
 
 func UpdateByUserAddress(m *UserSystemCity) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -54,7 +56,7 @@ func UpdateByUserAddress(m *UserSystemCity) error {
 
 func DelByUserAddress(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&UserSystemCity{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&UserSystemCity{}).Error
 	if err != nil {
 		return err
 	}

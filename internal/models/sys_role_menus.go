@@ -3,6 +3,7 @@ package models
 import (
 	dto2 "shop/internal/service/menu_service/dto"
 	"shop/pkg/constant"
+	"shop/pkg/global"
 	"shop/pkg/runtime"
 )
 
@@ -15,7 +16,7 @@ type SysRolesMenus struct {
 func BatchRoleMenuAdd(menu dto2.RoleMenu) error {
 
 	var err error
-	tx := db.Begin()
+	tx := global.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()

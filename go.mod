@@ -5,7 +5,8 @@ go 1.15
 require (
 	gitee.com/phper95/pkg/cache v0.0.0-20220627172831-4d3847e7d246
 	gitee.com/phper95/pkg/db v0.0.0-20220627172831-4d3847e7d246
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	gitee.com/phper95/pkg/mq v0.0.0-20220627172831-4d3847e7d246
+	github.com/Shopify/sarama v1.19.0
 	github.com/astaxie/beego v1.12.3
 	github.com/boombuler/barcode v1.0.1
 	github.com/casbin/casbin/v2 v2.37.4
@@ -22,7 +23,6 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jinzhu/copier v0.3.2
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -45,8 +45,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.0
-	github.com/swaggo/gin-swagger v1.2.0
-	github.com/swaggo/swag v1.7.4
+	github.com/swaggo/gin-swagger v1.3.3
 	github.com/tebeka/strftime v0.1.5 // indirect
 	github.com/ttlv/kdniao v0.0.0-20220119131043-fcaba08b1873
 	github.com/unknwon/com v1.0.1
@@ -59,7 +58,6 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/ini.v1 v1.63.2 // indirect
 	gorm.io/datatypes v1.0.6
-	gorm.io/driver/mysql v1.3.2
 	gorm.io/gorm v1.23.2
 	gorm.io/plugin/soft_delete v1.1.0
 )

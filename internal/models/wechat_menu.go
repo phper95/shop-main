@@ -3,6 +3,7 @@ package models
 import (
 	"gorm.io/datatypes"
 	"shop/pkg/constant"
+	"shop/pkg/global"
 	"time"
 )
 
@@ -22,14 +23,14 @@ func GetWechatMenu(maps interface{}) WechatMenu {
 		data WechatMenu
 	)
 
-	db.Where(maps).First(&data)
+	global.Db.Where(maps).First(&data)
 
 	return data
 }
 
 func AddWechatMenu(m *WechatMenu) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -38,7 +39,7 @@ func AddWechatMenu(m *WechatMenu) error {
 
 func UpdateByWechatMenu(m *WechatMenu) error {
 	var err error
-	err = db.Model(&WechatMenu{}).Where("key", constant.WeChatMenu).Updates(m).Error
+	err = global.Db.Model(&WechatMenu{}).Where("key", constant.WeChatMenu).Updates(m).Error
 	if err != nil {
 		return err
 	}

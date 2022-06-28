@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type SysDept struct {
 	Name     string    `json:"name" valid:"Required;"`
 	Pid      int64     `json:"pid"`
@@ -15,7 +17,7 @@ func (SysDept) TableName() string {
 
 func GetAllDepts(maps interface{}) []SysDept {
 	var depts []SysDept
-	db.Where(maps).Find(&depts)
+	global.Db.Where(maps).Find(&depts)
 	return RecursionDeptList(depts, 0)
 }
 
@@ -34,7 +36,7 @@ func RecursionDeptList(data []SysDept, pid int64) []SysDept {
 
 func AddDept(m *SysDept) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -44,7 +46,7 @@ func AddDept(m *SysDept) error {
 
 func UpdateByDept(m *SysDept) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -54,7 +56,7 @@ func UpdateByDept(m *SysDept) error {
 
 func DelByDept(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&SysDept{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&SysDept{}).Error
 	if err != nil {
 		return err
 	}

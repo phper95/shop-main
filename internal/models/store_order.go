@@ -1,6 +1,7 @@
 package models
 
 import (
+	"shop/pkg/global"
 	"time"
 )
 
@@ -69,8 +70,8 @@ func GetAllOrder(pageNUm int, pageSize int, maps interface{}) (int64, []StoreOrd
 		data  []StoreOrder
 	)
 
-	db.Model(&StoreOrder{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
+	global.Db.Model(&StoreOrder{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
 
 	return total, data
 }
@@ -81,15 +82,15 @@ func GetAdminAllOrder(pageNUm int, pageSize int, maps interface{}) (int64, []Sto
 		data  []StoreOrder
 	)
 
-	db.Model(&StoreOrder{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Preload("UserDto").Order("id desc").Find(&data)
+	global.Db.Model(&StoreOrder{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Preload("UserDto").Order("id desc").Find(&data)
 
 	return total, data
 }
 
 func AddStoreOrder(m *StoreOrder) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -98,7 +99,7 @@ func AddStoreOrder(m *StoreOrder) error {
 
 func UpdateByStoreOrder(m *StoreOrder) error {
 	var err error
-	err = db.Updates(m).Error
+	err = global.Db.Updates(m).Error
 	if err != nil {
 		return err
 	}
@@ -108,7 +109,7 @@ func UpdateByStoreOrder(m *StoreOrder) error {
 
 func DelByStoreOrder(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&StoreOrder{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&StoreOrder{}).Error
 	if err != nil {
 		return err
 	}

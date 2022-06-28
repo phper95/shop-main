@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type StoreCategory struct {
 	CateName string          `json:"cateName" valid:"Required;"`
 	Pid      int64           `json:"pid"`
@@ -17,7 +19,7 @@ func (StoreCategory) TableName() string {
 
 func GetAllCates(maps interface{}) []StoreCategory {
 	var data []StoreCategory
-	db.Where(maps).Find(&data)
+	global.Db.Where(maps).Find(&data)
 	return RecursionCateList(data, 0)
 }
 
@@ -36,7 +38,7 @@ func RecursionCateList(data []StoreCategory, pid int64) []StoreCategory {
 
 func AddCate(m *StoreCategory) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -45,7 +47,7 @@ func AddCate(m *StoreCategory) error {
 
 func UpdateByCate(m *StoreCategory) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -55,7 +57,7 @@ func UpdateByCate(m *StoreCategory) error {
 
 func DelByCate(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&StoreCategory{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&StoreCategory{}).Error
 	if err != nil {
 		return err
 	}

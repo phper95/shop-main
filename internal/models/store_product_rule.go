@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	dto2 "shop/internal/service/product_service/dto"
+	"shop/pkg/global"
 )
 
 //
@@ -24,8 +25,8 @@ func GetAllProductRule(pageNUm int, pageSize int, maps interface{}) (int64, []dt
 		data    []StoreProductRule
 		retData []dto2.ProductRule
 	)
-	db.Model(&StoreProductRule{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
+	global.Db.Model(&StoreProductRule{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
 
 	for _, rule := range data {
 		var value []interface{}
@@ -45,7 +46,7 @@ func GetAllProductRule(pageNUm int, pageSize int, maps interface{}) (int64, []dt
 
 func AddProductRule(m *StoreProductRule) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -54,7 +55,7 @@ func AddProductRule(m *StoreProductRule) error {
 
 func UpdateByProductRule(id int64, m *StoreProductRule) error {
 	var err error
-	err = db.Model(&StoreProductRule{}).Where("id = ?", id).Updates(m).Error
+	err = global.Db.Model(&StoreProductRule{}).Where("id = ?", id).Updates(m).Error
 	if err != nil {
 		return err
 	}
@@ -64,7 +65,7 @@ func UpdateByProductRule(id int64, m *StoreProductRule) error {
 
 func DelByProductRulee(ids []int64) error {
 	var err error
-	err = db.Model(&StoreProductRule{}).Where("id in (?)", ids).Update("is_del", 1).Error
+	err = global.Db.Model(&StoreProductRule{}).Where("id in (?)", ids).Update("is_del", 1).Error
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"shop/pkg/global"
+	"time"
+)
 
 type StoreProductReply struct {
 	Uid                  int64     `json:"uid"`
@@ -28,15 +31,15 @@ func GetAllProductReply(pageNUm int, pageSize int, maps interface{}) (int64, []S
 		total int64
 		data  []StoreProductReply
 	)
-	db.Model(&StoreProductReply{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
+	global.Db.Model(&StoreProductReply{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
 
 	return total, data
 }
 
 func AddStoreProductReply(m *StoreProductReply) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -45,7 +48,7 @@ func AddStoreProductReply(m *StoreProductReply) error {
 
 func UpdateByStoreProductReply(m *StoreProductReply) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -55,7 +58,7 @@ func UpdateByStoreProductReply(m *StoreProductReply) error {
 
 func DelByStoreProductReply(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&StoreProductReply{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&StoreProductReply{}).Error
 	if err != nil {
 		return err
 	}

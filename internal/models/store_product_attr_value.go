@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/segmentio/ksuid"
 	dto2 "shop/internal/service/product_service/dto"
+	"shop/pkg/global"
 	"shop/pkg/util"
 	"sort"
 	"strconv"
@@ -38,7 +39,7 @@ func (StoreProductAttrValue) TableName() string {
 
 func GetAttrValueByProductIdAndSku(productId int64, sku string) *StoreProductAttrValue {
 	var attrValue StoreProductAttrValue
-	db.Where("product_id = ?", productId).Where("sku = ?", sku).First(&attrValue)
+	global.Db.Where("product_id = ?", productId).Where("sku = ?", sku).First(&attrValue)
 
 	return &attrValue
 }
@@ -46,7 +47,7 @@ func GetAttrValueByProductIdAndSku(productId int64, sku string) *StoreProductAtt
 //
 func AddProductttrValue(attrs []dto2.ProductFormat, productId int64) error {
 	var err error
-	tx := db.Begin()
+	tx := global.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -101,6 +102,6 @@ func AddProductttrValue(attrs []dto2.ProductFormat, productId int64) error {
 }
 
 func DelByProductttrValue(productId int64) (err error) {
-	err = db.Where("product_id = ?", productId).Delete(StoreProductAttrValue{}).Error
+	err = global.Db.Where("product_id = ?", productId).Delete(StoreProductAttrValue{}).Error
 	return err
 }

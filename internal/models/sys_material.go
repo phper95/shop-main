@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type SysMaterial struct {
 	Name     string `json:"name" valid:"Required;"`
 	Type     string `json:"type"`
@@ -18,15 +20,15 @@ func GetAllMaterial(pageNUm int, pageSize int, maps interface{}) (int64, []SysMa
 		total int64
 		data  []SysMaterial
 	)
-	db.Model(&SysMaterial{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id DESC").Find(&data)
+	global.Db.Model(&SysMaterial{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id DESC").Find(&data)
 
 	return total, data
 }
 
 func AddMaterial(m *SysMaterial) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -35,7 +37,7 @@ func AddMaterial(m *SysMaterial) error {
 
 func UpdateByMaterial(m *SysMaterial) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -45,7 +47,7 @@ func UpdateByMaterial(m *SysMaterial) error {
 
 func DelByMaterial(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&SysMaterial{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&SysMaterial{}).Error
 	if err != nil {
 		return err
 	}

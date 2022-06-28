@@ -57,7 +57,7 @@
       ......
 - conf 公共配置
   -config.yml yml配置文件
-- docs swagger
+  
 - middleware 中间件
     - AuthCheck.go
 	- cors.go 
@@ -81,7 +81,7 @@
 - redis >=4.0.0
 
 ## 后端技术
-gin、gorm、jwt、redis、Mysql、copier、ksuid、 Redis、swagger、zap、viper、wechat
+gin、gorm、jwt、redis、Mysql、copier、ksuid、 Redis、zap、viper、wechat
 
 ##　前端技术
 npm、ES6、vue-cli、vue-router、vuex、element-ui
@@ -148,7 +148,6 @@ var appG = app.Gin{C: c}
 * copier
 * ksuid
 * Redis
-*  swagger
 *  Casbin
 *  viper
 *  zap

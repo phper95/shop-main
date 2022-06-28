@@ -34,6 +34,9 @@ redis:
   password:
   idle_timeout: 200
 
+kafka:
+  hosts: ["127.0.0.1:9091"]
+
 zap:
   log-filepath: 'runtime/logs'
   log-info-filename: 'info'

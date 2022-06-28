@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type Express struct {
 	Code   string `json:"code"`
 	Name   string `json:"name"`
@@ -19,15 +21,15 @@ func GetAllExpress(pageNUm int, pageSize int, maps interface{}) (int64, []Expres
 		lists []Express
 	)
 
-	db.Model(&Express{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Find(&lists)
+	global.Db.Model(&Express{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Find(&lists)
 
 	return total, lists
 }
 
 func AddExpress(m *Express) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -36,7 +38,7 @@ func AddExpress(m *Express) error {
 
 func UpdateByExpress(m *Express) error {
 	var err error
-	err = db.Updates(m).Error
+	err = global.Db.Updates(m).Error
 	if err != nil {
 		return err
 	}
@@ -46,7 +48,7 @@ func UpdateByExpress(m *Express) error {
 
 func DelByExpress(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&Express{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&Express{}).Error
 	if err != nil {
 		return err
 	}

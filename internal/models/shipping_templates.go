@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type ShippingTemplates struct {
 	Name        string `json:"name"`
 	Type        int8   `json:"type"`
@@ -16,7 +18,7 @@ func (ShippingTemplates) TableName() string {
 
 func AddShippingTemplates(m *ShippingTemplates) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -25,7 +27,7 @@ func AddShippingTemplates(m *ShippingTemplates) error {
 
 func UpdateByShippingTemplates(m *ShippingTemplates) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -35,7 +37,7 @@ func UpdateByShippingTemplates(m *ShippingTemplates) error {
 
 func DelByShippingTemplatess(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&ShippingTemplates{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&ShippingTemplates{}).Error
 	if err != nil {
 		return err
 	}

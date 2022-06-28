@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type SysMaterialGroup struct {
 	Name     string `json:"name" valid:"Required;"`
 	CreateId int64  `json:"create_id"`
@@ -13,13 +15,13 @@ func (SysMaterialGroup) TableName() string {
 //
 func GetAllGroup(maps interface{}) []SysMaterialGroup {
 	var data []SysMaterialGroup
-	db.Where(maps).Find(&data)
+	global.Db.Where(maps).Find(&data)
 	return data
 }
 
 func AddMaterialGroup(m *SysMaterialGroup) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -28,7 +30,7 @@ func AddMaterialGroup(m *SysMaterialGroup) error {
 
 func UpdateByMaterialGroup(m *SysMaterialGroup) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -38,7 +40,7 @@ func UpdateByMaterialGroup(m *SysMaterialGroup) error {
 
 func DelByMaterialGroup(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&SysMaterialGroup{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&SysMaterialGroup{}).Error
 	if err != nil {
 		return err
 	}

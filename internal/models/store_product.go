@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type StoreProduct struct {
 	Image        string         `json:"image" valid:"Required;"`
 	SliderImage  string         `json:"sliderImage" valid:"Required;"`
@@ -42,7 +44,7 @@ func (StoreProduct) TableName() string {
 
 func GetProduct(id int64) StoreProduct {
 	var product StoreProduct
-	db.Where("id =  ?", id).First(&product)
+	global.Db.Where("id =  ?", id).First(&product)
 
 	return product
 }
@@ -54,11 +56,11 @@ func GetFrontAllProduct(pageNUm int, pageSize int, maps interface{}, order strin
 		data  []StoreProduct
 	)
 
-	db.Model(&StoreProduct{}).Where(maps).Count(&total)
+	global.Db.Model(&StoreProduct{}).Where(maps).Count(&total)
 	if order == "" {
 		order = "id desc"
 	}
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Order(order).Find(&data)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Order(order).Find(&data)
 
 	return total, data
 }
@@ -70,15 +72,15 @@ func GetAllProduct(pageNUm int, pageSize int, maps interface{}) (int64, []StoreP
 		data  []StoreProduct
 	)
 
-	db.Model(&StoreProduct{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Preload("ProductCate").Order("id desc").Find(&data)
+	global.Db.Model(&StoreProduct{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Preload("ProductCate").Order("id desc").Find(&data)
 
 	return total, data
 }
 
 func AddProduct(m *StoreProduct) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -87,7 +89,7 @@ func AddProduct(m *StoreProduct) error {
 
 func UpdateByProduct(id int64, m *StoreProduct) error {
 	var err error
-	err = db.Model(&StoreProduct{}).Where("id = ?", id).Updates(m).Error
+	err = global.Db.Model(&StoreProduct{}).Where("id = ?", id).Updates(m).Error
 	if err != nil {
 		return err
 	}
@@ -100,13 +102,13 @@ func OnSaleByProduct(id int64, status int) (err error) {
 	if status == 1 {
 		isShow = 0
 	}
-	err = db.Model(&StoreProduct{}).Where("id = ?", id).Update("is_show", isShow).Error
+	err = global.Db.Model(&StoreProduct{}).Where("id = ?", id).Update("is_show", isShow).Error
 	return
 }
 
 func DelByProduct(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&StoreProduct{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&StoreProduct{}).Error
 	if err != nil {
 		return err
 	}

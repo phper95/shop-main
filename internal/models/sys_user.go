@@ -1,6 +1,7 @@
 package models
 
 import (
+	"shop/pkg/global"
 	"shop/pkg/logging"
 	"shop/pkg/util"
 )
@@ -35,18 +36,18 @@ func (SysUser) TableName() string {
 func FindByUserId(id int64) ([]string, error) {
 	var roles []SysRole
 	var roleIds []int64
-	db.Raw("SELECT r.* FROM sys_role r, sys_users_roles u WHERE r.id = u.sys_role_id AND u.sys_user_id = ?", id).Scan(&roles)
+	global.Db.Raw("SELECT r.* FROM sys_role r, sys_users_roles u WHERE r.id = u.sys_role_id AND u.sys_user_id = ?", id).Scan(&roles)
 	for _, role := range roles {
 		roleIds = append(roleIds, role.Id)
 	}
 	var rolesMenus []SysRolesMenus
 	var menuIds []int64
-	db.Table("sys_roles_menus").Where("sys_role_id in (?)", roleIds).Find(&rolesMenus)
+	global.Db.Table("sys_roles_menus").Where("sys_role_id in (?)", roleIds).Find(&rolesMenus)
 	for _, roleMenu := range rolesMenus {
 		menuIds = append(menuIds, roleMenu.MenuId)
 	}
 	var menus []SysMenu
-	db.Table("sys_menu").Where("id in (?)", menuIds).Find(&menus)
+	global.Db.Table("sys_menu").Where("id in (?)", menuIds).Find(&menus)
 
 	logging.Info(roles)
 	var permissions []string
@@ -64,7 +65,7 @@ func FindByUserId(id int64) ([]string, error) {
 //根据用户名返回
 func GetUserByUsername(name string) (*SysUser, error) {
 	var user SysUser
-	err := db.Preload("Roles").Preload("Jobs").Preload("Depts").Where("username = ? and is_del = ? ", name, 0).First(&user).Error
+	err := global.Db.Preload("Roles").Preload("Jobs").Preload("Depts").Where("username = ? and is_del = ? ", name, 0).First(&user).Error
 	if err == nil {
 		permissions, _ := FindByUserId(user.Id)
 		user.Permissions = permissions
@@ -80,7 +81,7 @@ func GetUserById(id int64) (SysUser, error) {
 	var user SysUser
 	var err error
 
-	err = db.Where("id = ?", id).First(&user).Error
+	err = global.Db.Where("id = ?", id).First(&user).Error
 
 	return user, err
 }
@@ -92,21 +93,21 @@ func GetAllUser(pageNUm int, pageSize int, maps interface{}) (int64, []SysUser) 
 		users []SysUser
 	)
 
-	db.Model(&SysUser{}).Where(maps).Count(&total)
-	db.Model(&SysUser{}).Where(maps).Offset(pageNUm).Limit(pageSize).Preload("Jobs").Preload("Depts").Preload("Roles").Find(&users)
+	global.Db.Model(&SysUser{}).Where(maps).Count(&total)
+	global.Db.Model(&SysUser{}).Where(maps).Offset(pageNUm).Limit(pageSize).Preload("Jobs").Preload("Depts").Preload("Roles").Find(&users)
 
 	return total, users
 }
 
 func UpdateCurrentUser(m *SysUser) (err error) {
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	return
 }
 
 func AddUser(m *SysUser) error {
 	var err error
 	m.Password = util.HashAndSalt([]byte("123456"))
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -115,7 +116,7 @@ func AddUser(m *SysUser) error {
 
 func UpdateByUser(m *SysUser) error {
 	var err error
-	tx := db.Begin()
+	tx := global.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -137,7 +138,7 @@ func UpdateByUser(m *SysUser) error {
 
 func DelByUser(ids []int64) error {
 	var err error
-	tx := db.Begin()
+	tx := global.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()

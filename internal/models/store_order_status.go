@@ -2,6 +2,7 @@ package models
 
 import (
 	"gorm.io/gorm"
+	"shop/pkg/global"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func AddStoreOrderStatus(tx *gorm.DB, oid int64, change, msg string) error {
 
 func UpdateByStoreOrderStatus(m *StoreOrderStatus) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -38,7 +39,7 @@ func UpdateByStoreOrderStatus(m *StoreOrderStatus) error {
 
 func DelByStoreOrderStatus(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&StoreOrderStatus{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&StoreOrderStatus{}).Error
 	if err != nil {
 		return err
 	}

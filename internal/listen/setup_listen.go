@@ -5,7 +5,7 @@ import (
 	"shop/pkg/global"
 )
 
-func Setup() {
+func Init() {
 	var sub PSubscriber
 	fmt.Printf(global.CONFIG.Redis.Host)
 	conn := PConnect(global.CONFIG.Redis.Host, global.CONFIG.Redis.Password)

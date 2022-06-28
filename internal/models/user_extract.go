@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"shop/pkg/global"
+	"time"
+)
 
 type UserExtract struct {
 	Uid          int64     `json:"uid"`
@@ -25,7 +28,7 @@ func (UserExtract) TableName() string {
 
 func AddUserExtract(m *UserExtract) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -34,7 +37,7 @@ func AddUserExtract(m *UserExtract) error {
 
 func UpdateByUserExtract(m *UserExtract) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -44,7 +47,7 @@ func UpdateByUserExtract(m *UserExtract) error {
 
 func DelByUserExtract(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&UserExtract{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&UserExtract{}).Error
 	if err != nil {
 		return err
 	}

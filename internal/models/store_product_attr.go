@@ -2,6 +2,7 @@ package models
 
 import (
 	dto2 "shop/internal/service/product_service/dto"
+	"shop/pkg/global"
 	"strings"
 )
 
@@ -18,7 +19,7 @@ func (StoreProductAttr) TableName() string {
 
 func AddProductAttr(items []dto2.FormatDetail, productId int64) error {
 	var err error
-	tx := db.Begin()
+	tx := global.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
@@ -47,6 +48,6 @@ func AddProductAttr(items []dto2.FormatDetail, productId int64) error {
 }
 
 func DelByProductttr(productId int64) (err error) {
-	err = db.Where("product_id = ?", productId).Delete(StoreProductAttr{}).Error
+	err = global.Db.Where("product_id = ?", productId).Delete(StoreProductAttr{}).Error
 	return err
 }

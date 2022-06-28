@@ -1,6 +1,7 @@
 package models
 
 import (
+	"shop/pkg/global"
 	"shop/pkg/logging"
 	"shop/pkg/util"
 )
@@ -35,14 +36,14 @@ func (SysMenu) TableName() string {
 
 func GetOneMenuById(id int64) SysMenu {
 	var res SysMenu
-	db.Where("id = ?", id).First(&res)
+	global.Db.Where("id = ?", id).First(&res)
 	return res
 }
 
 func GetAllMenus(maps interface{}) []SysMenu {
 	var menus []SysMenu
 
-	db.Where(maps).Order("sort").Find(&menus)
+	global.Db.Where(maps).Order("sort").Find(&menus)
 
 	return RecursionMenuList(menus, 0)
 }
@@ -62,7 +63,7 @@ func RecursionMenuList(data []SysMenu, pid int64) []SysMenu {
 
 func AddMenu(m *SysMenu) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 	return err
@@ -70,7 +71,7 @@ func AddMenu(m *SysMenu) error {
 
 func UpdateByMenu(m *SysMenu) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -80,7 +81,7 @@ func UpdateByMenu(m *SysMenu) error {
 
 func DelByMenu(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&SysMenu{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&SysMenu{}).Error
 	if err != nil {
 		return err
 	}
@@ -90,14 +91,14 @@ func DelByMenu(ids []int64) error {
 
 func FindMenuByRouterAndMethod(url string, method string) SysMenu {
 	var menu SysMenu
-	db.Where("router = ?", url).Where("router_method = ?", method).First(&menu)
+	global.Db.Where("router = ?", url).Where("router_method = ?", method).First(&menu)
 	return menu
 }
 
 func BuildMenus(uid int64) []SysMenu {
 	var lists = make([]RoleIdList, 0)
 	var roleIds = make([]int64, 0)
-	err := db.Raw("SELECT r.* FROM sys_role r, sys_users_roles u "+
+	err := global.Db.Raw("SELECT r.* FROM sys_role r, sys_users_roles u "+
 		"WHERE r.id = u.sys_role_id AND u.sys_user_id = ?", uid).Find(&lists).Error
 	if err != nil {
 		logging.Error(err)
@@ -108,7 +109,7 @@ func BuildMenus(uid int64) []SysMenu {
 	idsStr := util.Convert(roleIds)
 	logging.Info(idsStr)
 	var menus []SysMenu
-	e := db.Raw("select m.* from sys_menu m LEFT OUTER JOIN sys_roles_menus t on m.id= t.sys_menu_id "+
+	e := global.Db.Raw("select m.* from sys_menu m LEFT OUTER JOIN sys_roles_menus t on m.id= t.sys_menu_id "+
 		"LEFT OUTER JOIN sys_role r on r.id = t.sys_role_id where m.is_del=0  and m.type!=2 and r.id in (?) "+
 		"order by m.sort asc",
 		idsStr).Scan(&menus).Error

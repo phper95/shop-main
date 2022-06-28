@@ -34,7 +34,7 @@ type userStdClaims struct {
 	jwt.StandardClaims
 }
 
-func Setup() {
+func Init() {
 	jwtSecret = []byte(global.CONFIG.App.JwtSecret)
 }
 

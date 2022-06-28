@@ -1,6 +1,9 @@
 package front
 
 import (
+	"encoding/json"
+	"gitee.com/phper95/pkg/mq"
+	"github.com/Shopify/sarama"
 	"github.com/gin-gonic/gin"
 	"github.com/go-pay/gopay/wechat"
 	"github.com/unknwon/com"
@@ -14,6 +17,7 @@ import (
 	"shop/pkg/global"
 	"shop/pkg/jwt"
 	"shop/pkg/util"
+	"strconv"
 )
 
 // Order api
@@ -122,8 +126,18 @@ func (e *OrderController) Create(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
+	orderMsg, err := json.Marshal(order)
+	if err != nil {
+		global.LOG.Error(" json.Marshal error ", err, order)
+	} else {
+		//写消息队列
+		p, o, err := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{Key: mq.KafkaMsgValueStrEncoder(strconv.FormatInt(uid, 10)),
+			Value: mq.KafkaMsgValueEncoder(orderMsg)})
+		if err != nil {
+			global.LOG.Error("KafkaSyncProducer error", err, "partion : ", p, "offset : ", o)
+		}
+	}
 
-	global.LOG.Info(order)
 	orderExtendDto := &orderDto.OrderExtend{
 		Key:     key,
 		OrderId: order.OrderId,

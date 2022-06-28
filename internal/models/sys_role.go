@@ -1,5 +1,7 @@
 package models
 
+import "shop/pkg/global"
+
 type SysRole struct {
 	Name       string     `json:"name" valid:"Required;"`
 	Remark     string     `json:"remark"`
@@ -18,7 +20,7 @@ func (SysRole) TableName() string {
 
 func GetOneRole(id int64) SysRole {
 	var role SysRole
-	db.Where("id = ?", id).First(&role)
+	global.Db.Where("id = ?", id).First(&role)
 	return role
 }
 
@@ -29,15 +31,15 @@ func GetAllRole(pageNUm int, pageSize int, maps interface{}) (int64, []SysRole) 
 		lists []SysRole
 	)
 
-	db.Model(&SysRole{}).Where(maps).Count(&total)
-	db.Where(maps).Offset(pageNUm).Limit(pageSize).Preload("Menus").Find(&lists)
+	global.Db.Model(&SysRole{}).Where(maps).Count(&total)
+	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Preload("Menus").Find(&lists)
 
 	return total, lists
 }
 
 func AddRole(m *SysRole) error {
 	var err error
-	if err = db.Create(m).Error; err != nil {
+	if err = global.Db.Create(m).Error; err != nil {
 		return err
 	}
 
@@ -46,7 +48,7 @@ func AddRole(m *SysRole) error {
 
 func UpdateByRole(m *SysRole) error {
 	var err error
-	err = db.Save(m).Error
+	err = global.Db.Save(m).Error
 	if err != nil {
 		return err
 	}
@@ -56,7 +58,7 @@ func UpdateByRole(m *SysRole) error {
 
 func DelByRole(ids []int64) error {
 	var err error
-	err = db.Where("id in (?)", ids).Delete(&SysRole{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&SysRole{}).Error
 	if err != nil {
 		return err
 	}
