@@ -2,11 +2,11 @@ package upload
 
 import (
 	"fmt"
+	"gitee.com/phper95/pkg/file"
 	"log"
 	"mime/multipart"
 	"os"
 	"path"
-	"shop/pkg/file"
 	"shop/pkg/global"
 	"shop/pkg/logging"
 	"shop/pkg/util"

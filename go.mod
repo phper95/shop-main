@@ -5,6 +5,7 @@ go 1.15
 require (
 	gitee.com/phper95/pkg/cache v0.0.0-20220627172831-4d3847e7d246
 	gitee.com/phper95/pkg/db v0.0.0-20220627172831-4d3847e7d246
+	gitee.com/phper95/pkg/file v0.0.0-20220630104300-76014f7acc6f
 	gitee.com/phper95/pkg/mq v0.0.0-20220627172831-4d3847e7d246
 	github.com/Shopify/sarama v1.19.0
 	github.com/astaxie/beego v1.12.3
