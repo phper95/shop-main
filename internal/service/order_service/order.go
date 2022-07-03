@@ -24,6 +24,7 @@ import (
 	"shop/pkg/util"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Order struct {
@@ -286,13 +287,13 @@ func (d *Order) CreateOrder() (*models.StoreOrder, error) {
 	//todo 门店
 
 	var (
-		userAddress models.UserSystemCity
+		userAddress models.UserAddress
 		totalNum    = 0
 		cartIds     = make([]string, 0)
 		//integral = 0
 		gainIntegral = 0
 	)
-	err = global.Db.Model(&models.SystemCity{}).
+	err = global.Db.Model(&models.UserAddress{}).
 		Where("uid = ?", d.Uid).
 		Where("id = ?", d.OrderParam.AddressId).
 		First(&userAddress).Error
@@ -521,6 +522,7 @@ func (d *Order) ComputeOrder() (*ordervo.Compute, error) {
 	)
 	cacheDto, err := getCacheOrderInfo(d.Uid, d.Key)
 	if err != nil {
+		global.LOG.Error("getCacheOrderInfo error", err, "key", d.Key)
 		return nil, errors.New("订单已过期，请重新刷新当前页面")
 	}
 	payPrice := cacheDto.PriceGroup.TotalPrice
@@ -569,14 +571,14 @@ func (d *Order) ConfirmOrder() (*ordervo.ConfirmOrder, error) {
 	var (
 		deduction      = false //抵扣
 		enableIntegral = true  //积分
-		userAddress    models.SystemCity
+		userAddress    models.UserAddress
 	)
 	//获取默认地址
-	global.Db.Model(&models.SystemCity{}).
+	global.Db.Model(&models.UserAddress{}).
 		Where("uid = ?", d.Uid).
 		Where("is_default = ?", 1).
 		First(&userAddress)
-	priceGroup := getOrderPriceGroup(valid, &userAddress)
+	priceGroup := getOrderPriceGroup(valid)
 	cacheKey := cacheOrderInfo(d.Uid, valid, priceGroup, orderDto.Other{})
 	//优惠券 todo
 	var user userVO.User
@@ -606,7 +608,11 @@ func cacheOrderInfo(uid int64, cartInfo []cartVo.Cart, priceGroup orderDto.Price
 		Other:      other,
 	}
 	newKey := constant.OrderInfo + strconv.FormatInt(uid, 10) + key
-	cache.GetRedisClient(cache.DefaultRedisClient).Set(newKey, orderCache, 1000)
+	orderCacheVal, _ := json.Marshal(orderCache)
+	err := cache.GetRedisClient(cache.DefaultRedisClient).Set(newKey, orderCacheVal, 15*time.Minute)
+	if err != nil {
+		global.LOG.Error("cacheOrderInfo error ", err, "key", key)
+	}
 	return key
 }
 
@@ -629,7 +635,7 @@ func delCacheOrderInfo(uid int64, key string) {
 	}
 }
 
-func getOrderPriceGroup(cartInfo []cartVo.Cart, userAddress *models.SystemCity) orderDto.PriceGroup {
+func getOrderPriceGroup(cartInfo []cartVo.Cart) orderDto.PriceGroup {
 	var (
 		//storePostage float64
 		//storeFreePostage float64

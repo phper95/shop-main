@@ -3,16 +3,17 @@ module shop
 go 1.15
 
 require (
-	gitee.com/phper95/pkg/cache v0.0.0-20220627172831-4d3847e7d246
-	gitee.com/phper95/pkg/db v0.0.0-20220627172831-4d3847e7d246
-	gitee.com/phper95/pkg/file v0.0.0-20220630104300-76014f7acc6f
-	gitee.com/phper95/pkg/mq v0.0.0-20220627172831-4d3847e7d246
+	gitee.com/phper95/pkg/cache v0.0.0-20220703094553-749b8b5434b5
+	gitee.com/phper95/pkg/db v0.0.0-20220703094553-749b8b5434b5
+	gitee.com/phper95/pkg/file v0.0.0-20220703094553-749b8b5434b5
+	gitee.com/phper95/pkg/mq v0.0.0-20220703094553-749b8b5434b5
 	github.com/Shopify/sarama v1.19.0
 	github.com/astaxie/beego v1.12.3
 	github.com/boombuler/barcode v1.0.1
 	github.com/casbin/casbin/v2 v2.37.4
 	github.com/casbin/gorm-adapter/v3 v3.4.5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/gin-gonic/gin v1.7.4

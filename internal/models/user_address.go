@@ -2,7 +2,7 @@ package models
 
 import "shop/pkg/global"
 
-type UserSystemCity struct {
+type UserAddress struct {
 	Uid       int64  `json:"uid"`
 	RealName  string `json:"realName"`
 	Phone     string `json:"phone"`
@@ -18,24 +18,24 @@ type UserSystemCity struct {
 	BaseModel
 }
 
-func (UserSystemCity) TableName() string {
+func (UserAddress) TableName() string {
 	return "user_address"
 }
 
 // get all
-func GetAllUserAddress(pageNUm int, pageSize int, maps interface{}) (int64, []UserSystemCity) {
+func GetAllUserAddress(pageNUm int, pageSize int, maps interface{}) (int64, []UserAddress) {
 	var (
 		total int64
-		data  []UserSystemCity
+		data  []UserAddress
 	)
 
-	global.Db.Model(&UserSystemCity{}).Where(maps).Count(&total)
+	global.Db.Model(&UserAddress{}).Where(maps).Count(&total)
 	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
 
 	return total, data
 }
 
-func AddUserAddress(m *UserSystemCity) error {
+func AddUserAddress(m *UserAddress) error {
 	var err error
 	if err = global.Db.Create(m).Error; err != nil {
 		return err
@@ -44,7 +44,7 @@ func AddUserAddress(m *UserSystemCity) error {
 	return err
 }
 
-func UpdateByUserAddress(m *UserSystemCity) error {
+func UpdateByUserAddress(m *UserAddress) error {
 	var err error
 	err = global.Db.Save(m).Error
 	if err != nil {
@@ -56,7 +56,7 @@ func UpdateByUserAddress(m *UserSystemCity) error {
 
 func DelByUserAddress(ids []int64) error {
 	var err error
-	err = global.Db.Where("id in (?)", ids).Delete(&UserSystemCity{}).Error
+	err = global.Db.Where("id in (?)", ids).Delete(&UserAddress{}).Error
 	if err != nil {
 		return err
 	}

@@ -35,13 +35,14 @@ redis:
   idle_timeout: 200
 
 kafka:
-  hosts: ["127.0.0.1:9091"]
+  hosts: ["127.0.0.1:9092"]
 
 zap:
   log-filepath: 'runtime/logs'
   log-info-filename: 'info'
   log-warn-filename: 'warn'
   log-fiile-ext: 'log'
+  log-console: true
 
 wechat:
   app_id:

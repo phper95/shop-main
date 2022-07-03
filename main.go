@@ -1,14 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"gitee.com/phper95/pkg/cache"
 	"gitee.com/phper95/pkg/db"
 	"gitee.com/phper95/pkg/mq"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
-	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"shop/internal/listen"
 	"shop/pkg/base"
 	"shop/pkg/casbin"
@@ -17,6 +19,7 @@ import (
 	"shop/pkg/logging"
 	"shop/pkg/wechat"
 	"shop/routers"
+	"syscall"
 	"time"
 )
 
@@ -33,12 +36,18 @@ func init() {
 		IdleTimeout: global.CONFIG.Redis.IdleTimeout,
 	}, nil)
 	if err != nil {
+		if err != nil {
+			global.LOG.Error("InitRedis error ", err, "client", cache.DefaultRedisClient)
+			panic(err)
+		}
 		panic(err)
 	}
 
 	err = db.InitMysqlClient(db.DefaultClient, global.CONFIG.Database.User,
-		global.CONFIG.Database.Password, global.CONFIG.Database.Host, global.CONFIG.Database.Name)
+		global.CONFIG.Database.Password, global.CONFIG.Database.Host,
+		global.CONFIG.Database.Name)
 	if err != nil {
+		global.LOG.Error("InitMysqlClient error ", err, "client", db.DefaultClient)
 		panic(err)
 	}
 	global.Db = db.GetMysqlClient(db.DefaultClient).DB
@@ -51,7 +60,7 @@ func init() {
 
 	wechat.InitWechat()
 
-	err = mq.InitAsyncKafkaProducer(mq.DefaultKafkaSyncProducer, global.CONFIG.Kafka.Hosts, nil)
+	err = mq.InitSyncKafkaProducer(mq.DefaultKafkaSyncProducer, global.CONFIG.Kafka.Hosts, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -72,8 +81,24 @@ func main() {
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 
-	global.LOG.Info("[info] start http server listening %s", endPoint)
-	log.Printf("[info] start http server listening %s", endPoint)
-	server.ListenAndServe()
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil {
+			logging.Error("start http server error", err)
+		} else {
+			fmt.Println("start http server listening", endPoint)
+		}
+	}()
 
+	signals := make(chan os.Signal, 0)
+	signal.Notify(signals, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	s := <-signals
+	global.LOG.Warn("shop receive system signal:", s)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := server.Shutdown(ctx)
+	if err != nil {
+		global.LOG.Error("http server error", err)
+	}
+	mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Close()
 }

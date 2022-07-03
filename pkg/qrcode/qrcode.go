@@ -1,10 +1,10 @@
 package qrcode
 
 import (
+	"gitee.com/phper95/pkg/file"
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
 	"image/jpeg"
-	"shop/pkg/file"
 	"shop/pkg/global"
 	"shop/pkg/util"
 )

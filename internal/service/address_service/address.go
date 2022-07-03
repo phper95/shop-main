@@ -21,7 +21,7 @@ type Address struct {
 	PageNum  int
 	PageSize int
 
-	M *models.UserSystemCity
+	M *models.UserAddress
 
 	Ids []int64
 
@@ -34,7 +34,7 @@ func (d *Address) DelAddress() error {
 	err := global.Db.
 		Where("uid = ?", d.Uid).
 		Where("id = ?", d.Id).
-		Delete(&models.UserSystemCity{}).Error
+		Delete(&models.UserAddress{}).Error
 	if err != nil {
 		global.LOG.Error(err)
 		return errors.New("操作失败")
@@ -54,13 +54,13 @@ func (d *Address) SetDefault() error {
 			tx.Commit()
 		}
 	}()
-	err = tx.Model(&models.UserSystemCity{}).
+	err = tx.Model(&models.UserAddress{}).
 		Where("uid = ?", d.Uid).Update("is_default", 0).Error
 	if err != nil {
 		global.LOG.Error(err)
 		return errors.New("操作失败")
 	}
-	err = tx.Model(&models.UserSystemCity{}).
+	err = tx.Model(&models.UserAddress{}).
 		Where("id = ?", d.Id).Update("is_default", 1).Error
 	if err != nil {
 		global.LOG.Error(err)
@@ -70,7 +70,7 @@ func (d *Address) SetDefault() error {
 }
 
 //get list
-func (d *Address) GetList() ([]models.UserSystemCity, int, int) {
+func (d *Address) GetList() ([]models.UserAddress, int, int) {
 	maps := make(map[string]interface{})
 	maps["uid"] = d.Uid
 	total, list := models.GetAllUserAddress(d.PageNum, d.PageSize, maps)
@@ -91,7 +91,7 @@ func (d *Address) AddOrUpdate() (int64, error) {
 			tx.Commit()
 		}
 	}()
-	userAddress := &models.UserSystemCity{
+	userAddress := &models.UserAddress{
 		City:     d.Param.Address.City,
 		CityId:   d.Param.Address.CityId,
 		District: d.Param.Address.District,
@@ -104,7 +104,7 @@ func (d *Address) AddOrUpdate() (int64, error) {
 	}
 	if d.Param.IsDefault {
 		userAddress.IsDefault = 1
-		err = tx.Model(&models.UserSystemCity{}).
+		err = tx.Model(&models.UserAddress{}).
 			Where("uid = ?", d.Uid).Update("is_default", 0).Error
 		if err != nil {
 			global.LOG.Error(err)
@@ -112,13 +112,13 @@ func (d *Address) AddOrUpdate() (int64, error) {
 		}
 	}
 	if d.Param.Id == 0 {
-		err = models.AddUserAddress(userAddress)
+		err = tx.Create(userAddress).Error
 		if err != nil {
 			global.LOG.Error(err)
 			return 0, errors.New("操作失败")
 		}
 	} else {
-		err = tx.Model(&models.UserSystemCity{}).
+		err = tx.Model(&models.UserAddress{}).
 			Where("id = ?", d.Param.Id).
 			Updates(userAddress).Error
 		if err != nil {
@@ -130,7 +130,7 @@ func (d *Address) AddOrUpdate() (int64, error) {
 }
 
 //get city list
-func (d *Address) GetCitys() []models.SystemCity {
+func (d *Address) GetCities() []models.SystemCity {
 	key := constant.CityList
 	val, err := cache.GetRedisClient(cache.DefaultRedisClient).GetStr(key)
 	if err != nil {
@@ -148,7 +148,9 @@ func (d *Address) GetCitys() []models.SystemCity {
 	maps := make(map[string]interface{})
 	maps["is_show"] = 1
 	list := models.GetAllSystemCity(maps)
-	cache.GetRedisClient(cache.DefaultRedisClient).Set(key, list, 0)
+	listCache, _ := json.Marshal(list)
+	err = cache.GetRedisClient(cache.DefaultRedisClient).Set(key, listCache, 0)
+	global.LOG.Error("set Cities data error", err, "key", key)
 	return list
 }
 

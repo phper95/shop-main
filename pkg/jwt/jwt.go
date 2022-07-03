@@ -68,7 +68,10 @@ func GenerateAppToken(m *models.ShopUser, d time.Duration) (string, error) {
 	//set redis
 	var key = constant.AppRedisPrefixAuth + tokenString
 	json, _ := json.Marshal(m)
-	cache.GetRedisClient(cache.DefaultRedisClient).Set(key, string(json), d)
+	err = cache.GetRedisClient(cache.DefaultRedisClient).Set(key, json, d)
+	if err != nil {
+		global.LOG.Error("GenerateAppToken cache set error", err, "key", key)
+	}
 
 	return tokenString, err
 }

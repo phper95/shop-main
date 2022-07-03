@@ -133,7 +133,7 @@ func (e *UserAddressController) GetCityList(c *gin.Context) {
 		appG = app.Gin{C: c}
 	)
 	addressService := address_service.Address{Enabled: 1}
-	vo := addressService.GetCitys()
+	vo := addressService.GetCities()
 	appG.Response(http.StatusOK, constant.SUCCESS, vo)
 
 }

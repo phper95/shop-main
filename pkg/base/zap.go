@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io"
+	"os"
 	"shop/pkg/global"
 	"time"
 )
@@ -16,8 +17,9 @@ func SetupLogger() *zap.SugaredLogger {
 	infofilename := global.CONFIG.Zap.LogInfoFileName
 	warnfilename := global.CONFIG.Zap.LogWarnFileName
 	fileext := global.CONFIG.Zap.LogFileExt
+	logConsole := global.CONFIG.Zap.LogConsole
 
-	Logger, _ := getInitLogger(filepath, infofilename, warnfilename, fileext)
+	Logger, _ := getInitLogger(filepath, infofilename, warnfilename, fileext, logConsole)
 
 	defer Logger.Sync()
 
@@ -26,7 +28,7 @@ func SetupLogger() *zap.SugaredLogger {
 }
 
 //get logger
-func getInitLogger(filepath, infofilename, warnfilename, fileext string) (*zap.SugaredLogger, error) {
+func getInitLogger(filepath, infofilename, warnfilename, fileext string, console bool) (*zap.SugaredLogger, error) {
 	encoder := getEncoder()
 	//两个判断日志等级的interface
 	//warnlevel以下属于info
@@ -45,6 +47,10 @@ func getInitLogger(filepath, infofilename, warnfilename, fileext string) (*zap.S
 	warnWriter, err2 := getLogWriter(filepath+"/"+warnfilename, fileext)
 	if err2 != nil {
 		return nil, err2
+	}
+	if console {
+		infoWriter = getLogConsole()
+		warnWriter = infoWriter
 	}
 
 	//创建具体的Logger
@@ -115,6 +121,11 @@ func getLogWriter(filePath, fileext string) (zapcore.WriteSyncer, error) {
 		return nil, err
 	}
 	return zapcore.AddSync(warnIoWriter), nil
+}
+
+func getLogConsole() zapcore.WriteSyncer {
+	stdout := zapcore.Lock(os.Stdout) // lock for concurrent safe
+	return zapcore.AddSync(stdout)
 }
 
 //日志文件切割，按天
