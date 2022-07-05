@@ -1,6 +1,8 @@
 package admin
 
 import (
+	"gitee.com/phper95/pkg/mq"
+	"github.com/Shopify/sarama"
 	"github.com/gin-gonic/gin"
 	"github.com/unknwon/com"
 	"net/http"
@@ -73,6 +75,11 @@ func (e *StoreProductController) Post(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, constant.FAIL_ADD_DATA, nil)
 		return
 	}
+
+	//发消息队列
+	defer func() {
+		mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(sarama.Message{Key: })
+	}()
 
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)
 
