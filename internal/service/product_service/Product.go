@@ -71,7 +71,7 @@ func (d *Product) GetStock() int {
 func (d *Product) GetList() ([]proVo.Product, int, int) {
 	maps := make(map[string]interface{})
 	if d.Name != "" {
-		maps["name"] = d.Name
+		maps["store_name"] = d.Name
 	}
 	if d.Enabled >= 0 {
 		maps["is_show"] = d.Enabled

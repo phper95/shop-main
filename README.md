@@ -95,7 +95,7 @@ npm、ES6、vue-cli、vue-router、vuex、element-ui
 
 3、配置代理：go env -w GOPROXY=https://goproxy.cn,direct 这个让下载依赖速度更快
 
-4。下载项目：git clone https://gitee.com/guchengwuyue/shop-gin.git
+4、下载项目：git clone https://gitee.com/phper95/shop-main.git
 
 5、go mod tidy 安装所需依赖
 
