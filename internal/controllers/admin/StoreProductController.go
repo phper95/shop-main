@@ -11,6 +11,7 @@ import (
 	dto2 "shop/internal/service/product_service/dto"
 	"shop/pkg/app"
 	"shop/pkg/constant"
+	"shop/pkg/global"
 	"shop/pkg/util"
 	"strconv"
 )
@@ -80,13 +81,19 @@ func (e *StoreProductController) Post(c *gin.Context) {
 
 	//发消息队列
 	defer func() {
-		msg, _ := json.Marshal(dto)
-		mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(
-			&sarama.ProducerMessage{
-				Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(dto.Id, 10)),
-				Value: mq.KafkaMsgValueEncoder(msg),
-			},
+		productMsg := dto2.ProductMsg{
+			"update",
+			&dto,
+		}
+		msg, _ := json.Marshal(productMsg)
+		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
+			Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(dto.Id, 10)),
+			Value: mq.KafkaMsgValueEncoder(msg),
+		},
 		)
+		if e != nil {
+			global.LOG.Error("send product msg error ", e, "partion :", p, "offset :", o, "id :", dto.Id)
+		}
 	}()
 
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)

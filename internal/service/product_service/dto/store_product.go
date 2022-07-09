@@ -23,10 +23,15 @@ type StoreProduct struct {
 	Description  string          `json:"description" valid:"Required;"`
 	IsPostage    int8            `json:"is_postage"`
 	GiveIntegral int             `json:"give_integral"`
-	Cost         int             `json:"cost""`
+	Cost         int             `json:"cost"`
 	IsGood       int8            `json:"is_good"`
 	Ficti        int32           `json:"ficti"`
 	SpecType     int8            `json:"spec_type"`
 	Items        []FormatDetail  `json:"items"`
 	Attrs        []ProductFormat `json:"attrs"`
+}
+
+type ProductMsg struct {
+	Operation string `json:"operation"`
+	*StoreProduct
 }
