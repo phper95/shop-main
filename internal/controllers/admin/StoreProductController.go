@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"encoding/json"
 	"gitee.com/phper95/pkg/mq"
 	"github.com/Shopify/sarama"
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,7 @@ import (
 	"shop/pkg/app"
 	"shop/pkg/constant"
 	"shop/pkg/util"
+	"strconv"
 )
 
 // 商品 api
@@ -78,7 +80,13 @@ func (e *StoreProductController) Post(c *gin.Context) {
 
 	//发消息队列
 	defer func() {
-		mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(sarama.Message{Key: })
+		msg, _ := json.Marshal(dto)
+		mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(
+			&sarama.ProducerMessage{
+				Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(dto.Id, 10)),
+				Value: mq.KafkaMsgValueEncoder(msg),
+			},
+		)
 	}()
 
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)
