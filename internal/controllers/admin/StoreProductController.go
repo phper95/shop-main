@@ -7,10 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/unknwon/com"
 	"net/http"
+	"shop/internal/models"
 	"shop/internal/service/product_service"
 	dto2 "shop/internal/service/product_service/dto"
 	"shop/pkg/app"
 	"shop/pkg/constant"
+	"shop/pkg/enums/product"
 	"shop/pkg/global"
 	"shop/pkg/util"
 	"strconv"
@@ -73,17 +75,21 @@ func (e *StoreProductController) Post(c *gin.Context) {
 	productService := product_service.Product{
 		Dto: dto,
 	}
-
-	if err := productService.AddOrSaveProduct(); err != nil {
+	model, err := productService.AddOrSaveProduct()
+	if err != nil {
 		appG.Response(http.StatusInternalServerError, constant.FAIL_ADD_DATA, nil)
 		return
 	}
 
 	//发消息队列
 	defer func() {
+		operation := product.OperationCreate
+		if dto.Id > 0 {
+			operation = product.OperationUpdate
+		}
 		productMsg := dto2.ProductMsg{
-			"update",
-			&dto,
+			operation,
+			&model,
 		}
 		msg, _ := json.Marshal(productMsg)
 		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
@@ -92,7 +98,7 @@ func (e *StoreProductController) Post(c *gin.Context) {
 		},
 		)
 		if e != nil {
-			global.LOG.Error("send product msg error ", e, "partion :", p, "offset :", o, "id :", dto.Id)
+			global.LOG.Error("send product msg error ", e, "partition :", p, "offset :", o, "id :", dto.Id)
 		}
 	}()
 
@@ -119,6 +125,28 @@ func (e *StoreProductController) OnSale(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, constant.FAIL_ADD_DATA, nil)
 		return
 	}
+	defer func() {
+		operation := product.OperationOnSale
+		if dto.Status == 1 {
+			operation = product.OperationUnSale
+		}
+		productMsg := dto2.ProductMsg{
+			operation,
+			&models.StoreProduct{
+				BaseModel: models.BaseModel{Id: id},
+			},
+		}
+		msg, _ := json.Marshal(productMsg)
+		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
+			Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(id, 10)),
+			Value: mq.KafkaMsgValueEncoder(msg),
+		},
+		)
+		if e != nil {
+			global.LOG.Error("send product msg error ", e, "partition :", p, "offset :", o, "id :", id)
+		}
+
+	}()
 
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)
 
@@ -141,6 +169,25 @@ func (e *StoreProductController) Delete(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, constant.FAIL_ADD_DATA, nil)
 		return
 	}
+
+	defer func() {
+		productMsg := dto2.ProductMsg{
+			product.OperationDelete,
+			&models.StoreProduct{
+				BaseModel: models.BaseModel{Id: id},
+			},
+		}
+		msg, _ := json.Marshal(productMsg)
+		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
+			Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(id, 10)),
+			Value: mq.KafkaMsgValueEncoder(msg),
+		},
+		)
+		if e != nil {
+			global.LOG.Error("send product msg error ", e, "partition :", p, "offset :", o, "id :", id)
+		}
+
+	}()
 
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)
 }

@@ -231,9 +231,8 @@ func (d *Product) PublicFormatAttr() map[string]interface{} {
 	return getFormatAttr(d.Id, d.JsonObj)
 }
 
-func (d *Product) AddOrSaveProduct() (err error) {
+func (d *Product) AddOrSaveProduct() (model models.StoreProduct, err error) {
 	var (
-		model     models.StoreProduct
 		productId int64
 	)
 	m := d.Dto
@@ -251,7 +250,11 @@ func (d *Product) AddOrSaveProduct() (err error) {
 		err = models.UpdateByProduct(m.Id, &model)
 		productId = m.Id
 	} else {
-		models.AddProduct(&model)
+		err = models.AddProduct(&model)
+		if err != nil {
+			global.LOG.Error("AddProduct error", err, model)
+			return
+		}
 		productId = model.Id
 	}
 
@@ -271,7 +274,7 @@ func (d *Product) AddOrSaveProduct() (err error) {
 	} else {
 		err = insertProductSku(m.Items, m.Attrs, productId)
 	}
-	return err
+	return
 }
 
 func (d *Product) GetProductInfo() map[string]interface{} {
