@@ -20,7 +20,7 @@ type StoreProduct struct {
 	Stock        int            `json:"stock" valid:"Required;"`
 	IsShow       int8           `json:"isShow" valid:"Required;"`
 	IsHot        int8           `json:"isHot" valid:"Required;"`
-	IsBenefit    int8           `json:"is_benefit" valid:"Required;"`
+	IsBenefit    int8           `json:"isBenefit" valid:"Required;"`
 	IsBest       int8           `json:"isBest" valid:"Required;"`
 	IsNew        int8           `json:"isNew" valid:"Required;"`
 	Description  string         `json:"description" valid:"Required;"`
