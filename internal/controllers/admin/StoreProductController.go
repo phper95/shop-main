@@ -93,6 +93,7 @@ func (e *StoreProductController) Post(c *gin.Context) {
 		}
 		msg, _ := json.Marshal(productMsg)
 		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
+			Topic: product.Topic,
 			Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(dto.Id, 10)),
 			Value: mq.KafkaMsgValueEncoder(msg),
 		},
@@ -138,6 +139,7 @@ func (e *StoreProductController) OnSale(c *gin.Context) {
 		}
 		msg, _ := json.Marshal(productMsg)
 		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
+			Topic: product.Topic,
 			Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(id, 10)),
 			Value: mq.KafkaMsgValueEncoder(msg),
 		},
@@ -179,6 +181,7 @@ func (e *StoreProductController) Delete(c *gin.Context) {
 		}
 		msg, _ := json.Marshal(productMsg)
 		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
+			Topic: product.Topic,
 			Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(id, 10)),
 			Value: mq.KafkaMsgValueEncoder(msg),
 		},

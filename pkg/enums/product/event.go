@@ -1,6 +1,7 @@
 package product
 
 const (
+	Topic           = "shop-product"
 	OperationCreate = "create"
 	OperationUpdate = "update"
 	OperationDelete = "delete"
