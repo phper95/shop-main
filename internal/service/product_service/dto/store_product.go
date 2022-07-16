@@ -1,7 +1,5 @@
 package dto
 
-import "shop/internal/models"
-
 type StoreProduct struct {
 	Id           int64           `json:"id"`
 	Image        string          `json:"image" valid:"Required;"`
@@ -31,9 +29,4 @@ type StoreProduct struct {
 	SpecType     int8            `json:"spec_type"`
 	Items        []FormatDetail  `json:"items"`
 	Attrs        []ProductFormat `json:"attrs"`
-}
-
-type ProductMsg struct {
-	Operation string `json:"operation"`
-	*models.StoreProduct
 }

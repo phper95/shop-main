@@ -87,7 +87,7 @@ func (e *StoreProductController) Post(c *gin.Context) {
 		if dto.Id > 0 {
 			operation = product.OperationUpdate
 		}
-		productMsg := dto2.ProductMsg{
+		productMsg := models.ProductMsg{
 			operation,
 			&model,
 		}
@@ -131,7 +131,7 @@ func (e *StoreProductController) OnSale(c *gin.Context) {
 		if dto.Status == 1 {
 			operation = product.OperationUnSale
 		}
-		productMsg := dto2.ProductMsg{
+		productMsg := models.ProductMsg{
 			operation,
 			&models.StoreProduct{
 				BaseModel: models.BaseModel{Id: id},
@@ -173,7 +173,7 @@ func (e *StoreProductController) Delete(c *gin.Context) {
 	}
 
 	defer func() {
-		productMsg := dto2.ProductMsg{
+		productMsg := models.ProductMsg{
 			product.OperationDelete,
 			&models.StoreProduct{
 				BaseModel: models.BaseModel{Id: id},

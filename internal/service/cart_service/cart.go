@@ -118,7 +118,7 @@ func (d *Cart) GetCartList() map[string]interface{} {
 			continue
 		}
 		ee := CheckStock(cart.ProductId, cart.CartNum, cart.ProductAttrUnique)
-		if storeProduct.IsShow == 0 || ee != nil {
+		if *storeProduct.IsShow == 0 || ee != nil {
 			cartVo.ProductInfo = productVo
 			invalid = append(invalid, cartVo)
 			continue

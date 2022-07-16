@@ -18,24 +18,29 @@ type StoreProduct struct {
 	Sort         int16          `json:"sort" valid:"Required;"`
 	Sales        int            `json:"sales" valid:"Required;"`
 	Stock        int            `json:"stock" valid:"Required;"`
-	IsShow       int8           `json:"isShow" valid:"Required;"`
-	IsHot        int8           `json:"isHot" valid:"Required;"`
-	IsBenefit    int8           `json:"isBenefit" valid:"Required;"`
-	IsBest       int8           `json:"isBest" valid:"Required;"`
-	IsNew        int8           `json:"isNew" valid:"Required;"`
+	IsShow       *int8          `json:"isShow" valid:"Required;"`
+	IsHot        *int8          `json:"isHot" valid:"Required;"`
+	IsBenefit    *int8          `json:"isBenefit" valid:"Required;"`
+	IsBest       *int8          `json:"isBest" valid:"Required;"`
+	IsNew        *int8          `json:"isNew" valid:"Required;"`
 	Description  string         `json:"description" valid:"Required;"`
-	IsPostage    int8           `json:"isPostage" valid:"Required;"`
+	IsPostage    *int8          `json:"isPostage" valid:"Required;"`
 	GiveIntegral int            `json:"giveIntegral" valid:"Required;"`
 	Cost         float64        `json:"cost" valid:"Required;"`
-	IsGood       int8           `json:"isGood" valid:"Required;"`
+	IsGood       *int8          `json:"isGood" valid:"Required;"`
 	Ficti        int            `json:"ficti" valid:"Required;"`
 	Browse       int            `json:"browse" valid:"Required;"`
-	IsSub        int8           `json:"isSub" valid:"Required;"`
+	IsSub        *int8          `json:"isSub" valid:"Required;"`
 	TempId       int64          `json:"tempId" valid:"Required;"`
 	SpecType     int8           `json:"specType" valid:"Required;"`
-	IsIntegral   int8           `json:"isIntegral" valid:"Required;"`
+	IsIntegral   *int8          `json:"isIntegral" valid:"Required;"`
 	Integral     int32          `json:"integral" valid:"Required;"`
 	BaseModel
+}
+
+type ProductMsg struct {
+	Operation string `json:"operation"`
+	*StoreProduct
 }
 
 func (StoreProduct) TableName() string {
