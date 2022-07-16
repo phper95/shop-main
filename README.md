@@ -45,10 +45,10 @@
 ## 项目结构
 
 ```
-- app 应用模块
+- internal 应用代码
     - controllers 控制器模块
-      - front
-        - wechatController.go 微信控制器
+      - admin 后端控制器
+      - front 前端控制器
     - listen redis监听器
     - models 模型模块
     - service 服务模块
@@ -57,17 +57,18 @@
       ......
 - conf 公共配置
   -config.yml yml配置文件
+  -config.go 配置解析，转化成对应的结构体
   
 - middleware 中间件
-    - AuthCheck.go
-	- cors.go 
+    - AuthCheck.go  jwt接口权限校验
+	- cors.go 跨域处理
 	......
 - pkg 程序应用包
   - app
   - base
   - casbin
   - jwt
-  - redis
+  - qrcode
   - wechat
   .....
 - routere 路由
@@ -95,17 +96,19 @@ npm、ES6、vue-cli、vue-router、vuex、element-ui
 
 3、配置代理：go env -w GOPROXY=https://goproxy.cn,direct 这个让下载依赖速度更快
 
-4、下载项目：git clone https://gitee.com/phper95/shop-main.git
+5、配置私有仓库：go env -w  GOPRIVATE=*gitee.com
 
-5、go mod tidy 安装所需依赖
+6、下载项目：git clone https://gitee.com/phper95/shop-main.git
 
-6、导入sql/shop.sql,修改cconfig,yml 里数据库与redis配置
+7、go mod tidy 安装所需依赖
 
-7、本地运行go run main.go
+8、导入sql/shop.sql,修改cconfig,yml 里数据库与redis配置
 
-8、线上部署： 
+9、本地运行go run main.go
 
 ```
+
+##  线上部署：
 
 ## 权限检验说明
 

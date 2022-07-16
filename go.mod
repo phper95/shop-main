@@ -7,6 +7,7 @@ require (
 	gitee.com/phper95/pkg/db v0.0.0-20220703094553-749b8b5434b5
 	gitee.com/phper95/pkg/file v0.0.0-20220703094553-749b8b5434b5
 	gitee.com/phper95/pkg/mq v0.0.0-20220703094553-749b8b5434b5
+	gitee.com/phper95/pkg/shutdown v0.0.0-20220712131014-476302b4332f
 	github.com/Shopify/sarama v1.19.0
 	github.com/astaxie/beego v1.12.3
 	github.com/boombuler/barcode v1.0.1

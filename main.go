@@ -6,11 +6,10 @@ import (
 	"gitee.com/phper95/pkg/cache"
 	"gitee.com/phper95/pkg/db"
 	"gitee.com/phper95/pkg/mq"
+	"gitee.com/phper95/pkg/shutdown"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
 	"net/http"
-	"os"
-	"os/signal"
 	"shop/internal/listen"
 	"shop/pkg/base"
 	"shop/pkg/casbin"
@@ -19,7 +18,6 @@ import (
 	"shop/pkg/logging"
 	"shop/pkg/wechat"
 	"shop/routers"
-	"syscall"
 	"time"
 )
 
@@ -90,15 +88,46 @@ func main() {
 		}
 	}()
 
-	signals := make(chan os.Signal, 0)
-	signal.Notify(signals, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	s := <-signals
-	global.LOG.Warn("shop receive system signal:", s)
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	err := server.Shutdown(ctx)
-	if err != nil {
-		global.LOG.Error("http server error", err)
-	}
-	mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Close()
+	//优雅关闭
+	shutdown.NewHook().Close(
+		//关闭http server
+		func() {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+			defer cancel()
+			if err := server.Shutdown(ctx); err != nil {
+				logging.Error("http server shutdown err", err)
+			}
+		},
+
+		func() {
+			//关闭kafka producer（特别是异步生产者，强制关闭会导致丢消息）
+			if err := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Close(); err != nil {
+				logging.Error("kafka shutdown err", err)
+			}
+		},
+		func() {
+			//关闭mysql
+			if err := db.CloseMysqlClient(db.DefaultClient); err != nil {
+				logging.Error("mysql shutdown err", err)
+			}
+		},
+		func() {
+			//关闭redis
+			if err := cache.GetRedisClient(cache.DefaultRedisClient).Close(); err != nil {
+				logging.Error("redis shutdown err", err)
+			}
+		},
+	)
+	//也可以自己实现优雅关闭
+	//signals := make(chan os.Signal, 0)
+	//signal.Notify(signals, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	//s := <-signals
+	//global.LOG.Warn("shop receive system signal:", s)
+	//ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	//defer cancel()
+	//err := server.Shutdown(ctx)
+	//if err != nil {
+	//	global.LOG.Error("http server error", err)
+	//}
+	//mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Close()
 }
