@@ -31,7 +31,7 @@ type StoreProduct struct {
 	Ficti        int            `json:"ficti" valid:"Required;"`
 	Browse       int            `json:"browse" valid:"Required;"`
 	IsSub        *int8          `json:"is_sub" valid:"Required;"`
-	TempId       int64          `json:"tempId" valid:"Required;"`
+	TempId       int64          `json:"temp_id" valid:"Required;"`
 	SpecType     int8           `json:"spec_type" valid:"Required;"`
 	IsIntegral   *int8          `json:"isIntegral" valid:"Required;"`
 	Integral     int32          `json:"integral" valid:"Required;"`

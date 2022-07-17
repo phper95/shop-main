@@ -27,7 +27,7 @@ type Product struct {
 	Ficti          int                          `json:"ficti"`
 	Browse         int                          `json:"browse"`
 	IsSub          int8                         `json:"is_sub"`
-	TempId         int64                        `json:"tempId"`
+	TempId         int64                        `json:"temp_id"`
 	SpecType       int8                         `json:"spec_type"`
 	IsIntegral     int8                         `json:"is_integral"`
 	Integral       int32                        `json:"integral"`
