@@ -245,7 +245,7 @@ func (d *Product) AddOrSaveProduct() (model models.StoreProduct, err error) {
 	model.Stock = res["stock"].(int)
 	images := strings.Join(m.SliderImage, ",")
 	model.SliderImage = images
-	global.LOG.Debugf("model:%+v", model)
+	global.LOG.Warnf("model:%+v", model)
 	if m.Id > 0 {
 		err = models.UpdateByProduct(m.Id, &model)
 		productId = m.Id

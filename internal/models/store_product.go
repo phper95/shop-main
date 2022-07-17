@@ -103,11 +103,7 @@ func UpdateByProduct(id int64, m *StoreProduct) error {
 }
 
 func OnSaleByProduct(id int64, status int) (err error) {
-	var isShow = 1
-	if status == 1 {
-		isShow = 0
-	}
-	err = global.Db.Model(&StoreProduct{}).Where("id = ?", id).Update("is_show", isShow).Error
+	err = global.Db.Model(&StoreProduct{}).Where("id = ?", id).Update("is_show", status).Error
 	return
 }
 

@@ -116,7 +116,13 @@ func (e *StoreProductController) OnSale(c *gin.Context) {
 		dto  dto2.OnSale
 		appG = app.Gin{C: c}
 	)
+	paramErr := app.BindAndValidate(c, &dto)
+	if paramErr != nil {
+		appG.Response(http.StatusBadRequest, paramErr.Error(), nil)
+		return
+	}
 	id := com.StrTo(c.Param("id")).MustInt64()
+
 	productService := product_service.Product{
 		SaleDto: dto,
 		Id:      id,
@@ -128,14 +134,13 @@ func (e *StoreProductController) OnSale(c *gin.Context) {
 	}
 	defer func() {
 		operation := product.OperationOnSale
-		if dto.Status == 1 {
+		if dto.Status == 0 {
 			operation = product.OperationUnSale
 		}
+		productInfo := models.GetProduct(id)
 		productMsg := models.ProductMsg{
 			operation,
-			&models.StoreProduct{
-				BaseModel: models.BaseModel{Id: id},
-			},
+			&productInfo,
 		}
 		msg, _ := json.Marshal(productMsg)
 		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
@@ -165,19 +170,23 @@ func (e *StoreProductController) Delete(c *gin.Context) {
 	)
 	id := com.StrTo(c.Param("id")).MustInt64()
 	ids = append(ids, id)
-
+	productInfo := models.GetProduct(id)
+	if productInfo.Id == 0 {
+		appG.Response(http.StatusNotFound, constant.ERROR_NOT_EXIST_PRODUCT, nil)
+		return
+	}
 	productService := product_service.Product{Ids: ids}
+
 	if err := productService.Del(); err != nil {
 		appG.Response(http.StatusInternalServerError, constant.FAIL_ADD_DATA, nil)
 		return
 	}
 
 	defer func() {
+
 		productMsg := models.ProductMsg{
 			product.OperationDelete,
-			&models.StoreProduct{
-				BaseModel: models.BaseModel{Id: id},
-			},
+			&productInfo,
 		}
 		msg, _ := json.Marshal(productMsg)
 		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
