@@ -12,7 +12,7 @@ import (
 
 type StoreProductAttrValue struct {
 	ID           int64   `json:"id"`
-	ProductId    int64   `json:"productId" valid:"Required;"`
+	ProductId    int64   `json:"product_id" valid:"Required;"`
 	Sku          string  `json:"sku" valid:"Required;"`
 	Stock        int     `json:"stock" valid:"Required;"`
 	Sales        int     `json:"sales"`
@@ -20,16 +20,16 @@ type StoreProductAttrValue struct {
 	Image        string  `json:"image"`
 	Unique       string  `json:"unique"`
 	Cost         float64 `json:"cost"`
-	BarCode      string  `json:"barCode"`
-	OtPrice      float64 `json:"otPrice"`
+	BarCode      string  `json:"bar_code"`
+	OtPrice      float64 `json:"ot_price"`
 	Weight       float64 `json:"weight"`
 	Volume       float64 `json:"volume"`
 	Brokerage    float64 `json:"brokerage"`
-	BrokerageTwo float64 `json:"brokerage"`
-	PinkPrice    float64 `json:"pinkPrice"`
-	PinkStock    int     `json:"pinkStock"`
-	SeckillPrice float64 `json:"seckillPrice"`
-	SeckillStock int     `json:"seckillStock"`
+	BrokerageTwo float64 `json:"brokerage_two"`
+	PinkPrice    float64 `json:"pink_price"`
+	PinkStock    int     `json:"pink_stock"`
+	SeckillPrice float64 `json:"seckill_price"`
+	SeckillStock int     `json:"seckill_stock"`
 	Integral     int     `json:"integral"`
 }
 

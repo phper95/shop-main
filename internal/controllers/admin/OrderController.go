@@ -35,7 +35,7 @@ func (e *OrderController) GetAll(c *gin.Context) {
 		Name:     name,
 		PageSize: util.GetSize(c),
 		PageNum:  util.GetPage(c),
-		IntType:  com.StrTo(c.Query("orderStatus")).MustInt(),
+		IntType:  com.StrTo(c.Query("order_status")).MustInt(),
 	}
 	vo := orderService.GetAll()
 	appG.Response(http.StatusOK, constant.SUCCESS, vo)

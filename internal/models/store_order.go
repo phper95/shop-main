@@ -6,57 +6,57 @@ import (
 )
 
 type StoreOrder struct {
-	OrderId                string      `json:"orderId"`
+	OrderId                string      `json:"order_id"`
 	ExtendOrderId          string      `json:"extend_order_id"`
 	Uid                    int64       `json:"uid"`
-	RealName               string      `json:"realName"`
-	UserPhone              string      `json:"userPhone"`
-	UserAddress            string      `json:"userAddress"`
-	CartId                 string      `json:"cartId"`
-	FreightPrice           float64     `json:"freightPrice"`
-	TotalNum               int         `json:"totalNum"`
-	TotalPrice             float64     `json:"totalPrice"`
-	TotalPostage           float64     `json:"totalPostage"`
-	PayPrice               float64     `json:"payPrice"`
-	PayPostage             float64     `json:"payPostage"`
-	DeductionPrice         float64     `json:"deductionPrice"`
-	CouponId               int64       `json:"couponId"`
-	CouponPrice            float64     `json:"couponPrice"`
+	RealName               string      `json:"real_name"`
+	UserPhone              string      `json:"user_phone"`
+	UserAddress            string      `json:"user_address"`
+	CartId                 string      `json:"cart_id"`
+	FreightPrice           float64     `json:"freight_price"`
+	TotalNum               int         `json:"total_num"`
+	TotalPrice             float64     `json:"total_price"`
+	TotalPostage           float64     `json:"total_postage"`
+	PayPrice               float64     `json:"pay_price"`
+	PayPostage             float64     `json:"pay_postage"`
+	DeductionPrice         float64     `json:"deduction_price"`
+	CouponId               int64       `json:"coupon_id"`
+	CouponPrice            float64     `json:"coupon_price"`
 	Paid                   int         `json:"paid"`
-	PayTime                time.Time   `json:"payTime"`
-	PayType                string      `json:"payType"`
+	PayTime                time.Time   `json:"pay_time"`
+	PayType                string      `json:"pay_type"`
 	Status                 int         `json:"status"`
-	RefundStatus           int         `json:"refundStatus"`
-	RefundReasonWapImg     string      `json:"refundReasonWapImg"`
-	RefundReasonWapExplain string      `json:"refundReasonWapExplain"`
-	RefundReasonTime       time.Time   `json:"refundReasonTime"`
-	RefundReasonWap        string      `json:"refundReasonWap"`
-	RefundReason           string      `json:"refundReason"`
-	RefundPrice            float64     `json:"refundPrice"`
-	DeliverySn             string      `json:"deliverySn"`
-	DeliveryName           string      `json:"deliveryName"`
-	DeliveryType           string      `json:"deliveryType"`
-	DeliveryId             string      `json:"deliveryId"`
-	GainIntegral           int         `json:"gainIntegral"`
-	UseIntegral            int         `json:"useIntegral"`
-	PayIntegral            int         `json:"payIntegral"`
-	BackIntegral           int         `json:"backIntegral"`
+	RefundStatus           int         `json:"refund_status"`
+	RefundReasonWapImg     string      `json:"refund_reason_wap_img"`
+	RefundReasonWapExplain string      `json:"refund_reason_wap_explain"`
+	RefundReasonTime       time.Time   `json:"refund_reason_time"`
+	RefundReasonWap        string      `json:"refund_reason_wap"`
+	RefundReason           string      `json:"refund_reason"`
+	RefundPrice            float64     `json:"refund_price"`
+	DeliverySn             string      `json:"delivery_sn"`
+	DeliveryName           string      `json:"delivery_name"`
+	DeliveryType           string      `json:"delivery_type"`
+	DeliveryId             string      `json:"delivery_id"`
+	GainIntegral           int         `json:"gain_integral"`
+	UseIntegral            int         `json:"use_integral"`
+	PayIntegral            int         `json:"pay_integral"`
+	BackIntegral           int         `json:"back_integral"`
 	Mark                   string      `json:"mark"`
 	Unique                 string      `json:"unique"`
 	Remark                 string      `json:"remark"`
-	CombinationId          int64       `json:"combinationId"`
-	PinkId                 int64       `json:"pinkId"`
+	CombinationId          int64       `json:"combination_id"`
+	PinkId                 int64       `json:"pink_id"`
 	Cost                   float64     `json:"cost"`
-	SeckillId              int64       `json:"seckillId"`
-	BargainId              int64       `json:"bargainId"`
-	VerifyCode             string      `json:"verifyCode"`
-	StoreId                int64       `json:"storeId"`
-	ShippingType           int         `json:"shippingType"`
-	UserDto                *ShopUser   `json:"userDTO" gorm:"foreignKey:Uid;"`
-	CartInfo               interface{} `json:"cartInfo" gorm:"-" copier:"-"`
+	SeckillId              int64       `json:"seckill_id"`
+	BargainId              int64       `json:"bargain_id"`
+	VerifyCode             string      `json:"verify_code"`
+	StoreId                int64       `json:"store_id"`
+	ShippingType           int         `json:"shipping_type"`
+	UserDto                *ShopUser   `json:"user_dto" gorm:"foreignKey:Uid;"`
+	CartInfo               interface{} `json:"cart_info" gorm:"-" copier:"-"`
 	OrderStatus            int         `json:"_status" gorm:"-"`
-	OrderStatusName        string      `json:"statusName" gorm:"-"`
-	PayTypeName            string      `json:"payTypeName" gorm:"-"`
+	OrderStatusName        string      `json:"status_name" gorm:"-"`
+	PayTypeName            string      `json:"pay_type_name" gorm:"-"`
 	BaseModel
 }
 

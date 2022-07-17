@@ -30,7 +30,7 @@ func (e *StoreProductController) GetAll(c *gin.Context) {
 	var (
 		appG = app.Gin{C: c}
 	)
-	enabled := com.StrTo(c.DefaultQuery("isShow", "-1")).MustInt()
+	enabled := com.StrTo(c.DefaultQuery("is_show", "-1")).MustInt()
 	name := c.DefaultQuery("blurry", "")
 	productService := product_service.Product{
 		Enabled:  enabled,

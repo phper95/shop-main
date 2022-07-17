@@ -25,7 +25,7 @@ func (e *WechatUserController) GetAll(c *gin.Context) {
 	)
 	value := c.DefaultQuery("value", "")
 	myType := c.DefaultQuery("type", "")
-	userType := c.DefaultQuery("userType", "")
+	userType := c.DefaultQuery("user_type", "")
 
 	userService := wechat_user_service.User{
 		Value:    value,

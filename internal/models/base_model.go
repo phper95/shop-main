@@ -7,7 +7,7 @@ import (
 
 type BaseModel struct {
 	Id         int64                 `gorm:"primary_key" json:"id"`
-	UpdateTime time.Time             `json:"updateTime" gorm:"autoUpdateTime"`
-	CreateTime time.Time             `json:"createTime" gorm:"autoCreateTime"`
-	IsDel      soft_delete.DeletedAt `json:"isDel" gorm:"softDelete:flag"`
+	UpdateTime time.Time             `json:"update_time" gorm:"autoUpdateTime"`
+	CreateTime time.Time             `json:"create_time" gorm:"autoCreateTime"`
+	IsDel      soft_delete.DeletedAt `json:"is_del" gorm:"softDelete:flag"`
 }

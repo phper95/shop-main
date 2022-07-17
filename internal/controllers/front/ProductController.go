@@ -35,8 +35,8 @@ func (e *ProductController) GoodsList(c *gin.Context) {
 		PageSize:   util.GetFrontLimit(c),
 		Sid:        c.Query("sid"),
 		News:       c.Query("news"),
-		PriceOrder: c.Query("priceOrder"),
-		SalesOrder: c.Query("salesOrder"),
+		PriceOrder: c.Query("price_order"),
+		SalesOrder: c.Query("sales_order"),
 	}
 
 	vo, total, page := productService.GetList()
