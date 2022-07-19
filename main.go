@@ -28,25 +28,23 @@ func init() {
 
 	logging.Init()
 
+	//初始化redis
 	err := cache.InitRedis(cache.DefaultRedisClient, &redis.Options{
 		Addr:        global.CONFIG.Redis.Host,
 		Password:    global.CONFIG.Redis.Password,
 		IdleTimeout: global.CONFIG.Redis.IdleTimeout,
 	}, nil)
 	if err != nil {
-		if err != nil {
-			global.LOG.Error("InitRedis error ", err, "client", cache.DefaultRedisClient)
-			panic(err)
-		}
+		global.LOG.Error("InitRedis error", err, "client", cache.DefaultRedisClient)
 		panic(err)
 	}
 
-	err = db.InitMysqlClient(db.DefaultClient, global.CONFIG.Database.User,
+	//初始化mysql
+	db.InitMysqlClient(db.DefaultClient, global.CONFIG.Database.User,
 		global.CONFIG.Database.Password, global.CONFIG.Database.Host,
 		global.CONFIG.Database.Name)
 	if err != nil {
-		global.LOG.Error("InitMysqlClient error ", err, "client", db.DefaultClient)
-		panic(err)
+		global.LOG.Error("InitMysqlClient error", err, "client", db.DefaultClient)
 	}
 	global.Db = db.GetMysqlClient(db.DefaultClient).DB
 
@@ -57,9 +55,11 @@ func init() {
 	listen.Init()
 
 	wechat.InitWechat()
-
-	err = mq.InitSyncKafkaProducer(mq.DefaultKafkaSyncProducer, global.CONFIG.Kafka.Hosts, nil)
+	//初始化kafka
+	err = mq.InitSyncKafkaProducer(mq.DefaultKafkaSyncProducer,
+		global.CONFIG.Kafka.Hosts, nil)
 	if err != nil {
+		global.LOG.Error("InitSyncKafkaProducer err", err, "client", mq.DefaultKafkaSyncProducer)
 		panic(err)
 	}
 }
@@ -95,39 +95,34 @@ func main() {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 			defer cancel()
 			if err := server.Shutdown(ctx); err != nil {
-				logging.Error("http server shutdown err", err)
+				logging.Error("http server shutdown error", err)
 			}
 		},
-
+		//关闭kafka producer
 		func() {
-			//关闭kafka producer（特别是异步生产者，强制关闭会导致丢消息）
 			if err := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Close(); err != nil {
-				logging.Error("kafka shutdown err", err)
+				logging.Error("kafka close error", err, "client", mq.DefaultKafkaSyncProducer)
 			}
 		},
+		//关闭mysql
 		func() {
-			//关闭mysql
 			if err := db.CloseMysqlClient(db.DefaultClient); err != nil {
-				logging.Error("mysql shutdown err", err)
-			}
-		},
-		func() {
-			//关闭redis
-			if err := cache.GetRedisClient(cache.DefaultRedisClient).Close(); err != nil {
-				logging.Error("redis shutdown err", err)
+				logging.Error("CloseMysqlClient error", err, "client", db.DefaultClient)
 			}
 		},
 	)
-	//也可以自己实现优雅关闭
+
+	//优雅关闭的第二种方式
 	//signals := make(chan os.Signal, 0)
-	//signal.Notify(signals, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	//signal.Notify(signals, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	//s := <-signals
-	//global.LOG.Warn("shop receive system signal:", s)
-	//ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	//global.LOG.Warnf("shop recice signal:", s)
+	//ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	//defer cancel()
 	//err := server.Shutdown(ctx)
 	//if err != nil {
-	//	global.LOG.Error("http server error", err)
+	//	global.LOG.Error("http server close error", err)
 	//}
 	//mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Close()
+
 }

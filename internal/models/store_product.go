@@ -38,6 +38,7 @@ type StoreProduct struct {
 	BaseModel
 }
 
+//定义商品消息结构
 type ProductMsg struct {
 	Operation string `json:"operation"`
 	*StoreProduct
