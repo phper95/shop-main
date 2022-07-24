@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"shop/pkg/app"
 	"shop/pkg/constant"
+	"shop/pkg/global"
 	"shop/pkg/jwt"
 	"shop/pkg/logging"
 	"shop/pkg/runtime"
@@ -28,7 +29,7 @@ func AppJwt() gin.HandlerFunc {
 		token := strings.TrimSpace(mytoken[bearerLength:])
 		usr, err := jwt.ValidateToken(token)
 		if err != nil {
-			logging.Info(err)
+			global.LOG.Error(err)
 			appG.Response(http.StatusUnauthorized, constant.ERROR_AUTH_CHECK_TOKEN_FAIL, data)
 			c.Abort()
 			return

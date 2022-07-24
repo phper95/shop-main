@@ -84,6 +84,14 @@ func GetAllProduct(pageNUm int, pageSize int, maps interface{}) (int64, []StoreP
 	return total, data
 }
 
+func GetProductByIDs(maps interface{}) []StoreProduct {
+	var (
+		data []StoreProduct
+	)
+	global.Db.Where(maps).Preload("ProductCate").Find(&data)
+	return data
+}
+
 func AddProduct(m *StoreProduct) error {
 	var err error
 	if err = global.Db.Create(m).Error; err != nil {

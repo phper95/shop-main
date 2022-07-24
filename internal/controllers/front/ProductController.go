@@ -11,6 +11,7 @@ import (
 	"shop/pkg/app"
 	"shop/pkg/constant"
 	productEnum "shop/pkg/enums/product"
+	"shop/pkg/global"
 	"shop/pkg/jwt"
 	"shop/pkg/util"
 )
@@ -43,6 +44,40 @@ func (e *ProductController) GoodsList(c *gin.Context) {
 
 	appG.ResponsePage(http.StatusOK, constant.SUCCESS, vo, total, page)
 
+}
+
+// @Title 获取商品列表数据
+// @Description 获取商品列表数据
+// @Success 200 {object} app.Response
+// @router /api/v1/product/search [get]
+func (e *ProductController) GoodsSearch(c *gin.Context) {
+	var (
+		appG = app.Gin{C: c}
+	)
+
+	productService := product_service.Product{
+		Name:       c.Query("keyword"),
+		Enabled:    1,
+		PageNum:    util.GetFrontPage(c),
+		PageSize:   util.GetFrontLimit(c),
+		Sid:        c.Query("sid"),
+		News:       c.Query("news"),
+		PriceOrder: c.Query("price_order"),
+		SalesOrder: c.Query("sales_order"),
+	}
+	if len(productService.Name) == 0 {
+		vo, total, page := productService.GetList()
+		appG.ResponsePage(http.StatusOK, constant.SUCCESS, vo, total, page)
+		return
+	}
+
+	userid, err := jwt.GetAppUserId(c)
+	if err != nil {
+		global.LOG.Error("GetAppUserId error", err)
+	}
+	productService.Uid = userid
+	vo, total, page := productService.SearchGoods()
+	appG.ResponsePage(http.StatusOK, constant.SUCCESS, vo, total, page)
 }
 
 // @Title 获取推荐商品

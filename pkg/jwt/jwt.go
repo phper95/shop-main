@@ -80,7 +80,11 @@ func GenerateAppToken(m *models.ShopUser, d time.Duration) (string, error) {
 func GetAppUserId(c *gin.Context) (int64, error) {
 	u, exist := c.Get(constant.AppAuthUser)
 	if !exist {
-		return 0, errors.New("can't get user id")
+		shopUser, err := GetAppDetailUser(c)
+		if err != nil {
+			return 0, err
+		}
+		return shopUser.Id, nil
 	}
 	user, ok := u.(*vo.JwtUser)
 
@@ -94,7 +98,18 @@ func GetAppUserId(c *gin.Context) (int64, error) {
 func GetAppUser(c *gin.Context) (*vo.JwtUser, error) {
 	u, exist := c.Get(constant.AppAuthUser)
 	if !exist {
-		return nil, errors.New("can't get user id")
+		shopUser, err := GetAppDetailUser(c)
+		if err != nil {
+			return nil, err
+		}
+		jwtUser := vo.JwtUser{
+			Id:       shopUser.Id,
+			Avatar:   shopUser.Avatar,
+			Username: shopUser.Username,
+			Phone:    shopUser.Phone,
+			NickName: shopUser.Nickname,
+		}
+		return &jwtUser, nil
 	}
 	user, ok := u.(*vo.JwtUser)
 	if ok {
