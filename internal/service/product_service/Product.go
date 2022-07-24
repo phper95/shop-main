@@ -183,7 +183,7 @@ func (d *Product) SearchGoods() ([]proVo.Product, int, int) {
 		params.Add("sales_order", d.SalesOrder)
 	}
 
-	global.LOG.Warnf("================ d : %+v", d)
+	global.LOG.Infof("SearchGoods params : %+v", d)
 
 	apiCfg := global.CONFIG.Api
 	productSearchHost := "http://localhost:9090"
@@ -200,7 +200,7 @@ func (d *Product) SearchGoods() ([]proVo.Product, int, int) {
 	httpCode, body, err := httpclient.Get(productSearchHost+productSearchUri, params,
 		httpclient.WithTTL(time.Second*5), headerAuth, headerAuthDate)
 
-	global.LOG.Warn("resp================ ", httpCode, string(body), err)
+	global.LOG.Info("SearchGoods resp ", httpCode, string(body), err)
 	if err != nil || httpCode != http.StatusOK {
 		global.LOG.Error(" httpclient.Get error", err, httpCode, string(body))
 		return nil, 0, 0

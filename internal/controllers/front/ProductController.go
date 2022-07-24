@@ -46,8 +46,8 @@ func (e *ProductController) GoodsList(c *gin.Context) {
 
 }
 
-// @Title 获取商品列表数据
-// @Description 获取商品列表数据
+// @Title 商品搜索接口
+// @Description 根据关键词搜索商品
 // @Success 200 {object} app.Response
 // @router /api/v1/product/search [get]
 func (e *ProductController) GoodsSearch(c *gin.Context) {
