@@ -5,6 +5,7 @@ import (
 	"errors"
 	"gitee.com/phper95/pkg/httpclient"
 	"gitee.com/phper95/pkg/sign"
+	"gitee.com/phper95/pkg/strutil"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
 	"github.com/unknwon/com"
@@ -62,7 +63,7 @@ type Product struct {
 }
 
 //搜索结果响应结构
-type serchResponse struct {
+type searchResponse struct {
 	Success bool                  `json:"success"`
 	Code    int                   `json:"code"`
 	Msg     string                `json:"msg"`
@@ -72,8 +73,9 @@ type productSearchResponse struct {
 	Total int64           `json:"total"`
 	Hits  []*productIndex `json:"hits"`
 }
+
 type productIndex struct {
-	Id int64 `json:"id"` //商品id
+	Id int64 `json:"id"`
 }
 
 //get stock
@@ -164,63 +166,54 @@ func (d *Product) SearchGoods() ([]proVo.Product, int, int) {
 	var productSearchList []proVo.Product
 	//请求搜索接口
 	params := url.Values{}
-	params.Add("userid", strconv.FormatInt(d.Uid, 10))
+	params.Add("userid", strutil.Int64ToString(d.Uid))
 	params.Add("keyword", d.Name)
 	params.Add("page_num", strconv.Itoa(d.PageNum))
-	if d.PageSize == 0 {
-		d.PageSize = global.CONFIG.App.PageSize
-	}
 	params.Add("page_size", strconv.Itoa(d.PageSize))
 	if len(d.News) > 0 {
 		params.Add("news", d.News)
 	}
-
 	if len(d.PriceOrder) > 0 {
 		params.Add("price_order", d.PriceOrder)
 	}
-
 	if len(d.SalesOrder) > 0 {
 		params.Add("sales_order", d.SalesOrder)
 	}
 
-	global.LOG.Infof("SearchGoods params : %+v", d)
+	global.LOG.Infof("SearchGoods params: %+v", d)
 
 	apiCfg := global.CONFIG.Api
 	productSearchHost := "http://localhost:9090"
 	productSearchUri := "/api/v1/product-search"
-
-	authorization, date, err := sign.New(apiCfg.SearchProductAK, apiCfg.SearchProductSK,
-		constant.AuthorizationExpire).Generate(productSearchUri, http.MethodGet, params)
+	authorization, date, err := sign.New(apiCfg.SearchProductAK, apiCfg.SearchProductSK, constant.AuthorizationExpire).Generate(
+		productSearchUri, http.MethodGet, params)
 	if err != nil {
 		global.LOG.Error(err, params)
 		return nil, 0, 0
 	}
 	headerAuth := httpclient.WithHeader(constant.HeaderAuthField, authorization)
 	headerAuthDate := httpclient.WithHeader(constant.HeaderAuthDateField, date)
-	httpCode, body, err := httpclient.Get(productSearchHost+productSearchUri, params,
-		httpclient.WithTTL(time.Second*5), headerAuth, headerAuthDate)
-
-	global.LOG.Info("SearchGoods resp ", httpCode, string(body), err)
+	httpCode, body, err := httpclient.Get(productSearchHost+productSearchUri, params, httpclient.WithTTL(time.Second*5),
+		headerAuth, headerAuthDate)
 	if err != nil || httpCode != http.StatusOK {
 		global.LOG.Error(" httpclient.Get error", err, httpCode, string(body))
 		return nil, 0, 0
 	}
-	searchRes := &serchResponse{}
+	searchRes := &searchResponse{}
 	err = json.Unmarshal(body, searchRes)
 	if err != nil {
-		global.LOG.Error("Unmarshal serchResponse error", err, string(body))
+		global.LOG.Error("Unmarshal searchResponse error", err, string(body))
 		return nil, 0, 0
 	}
-	if searchRes == nil {
+	if searchRes != nil {
 		return productSearchList, 0, 0
 	}
 	if !searchRes.Success {
-		global.LOG.Error("Unmarshal serchResponse error", err, string(body))
+		global.LOG.Error("searchRes.Success", string(body))
 		return nil, 0, 0
 	}
 	totalNum := int(searchRes.Data.Total)
 	totalPage := util.GetTotalPage(totalNum, d.PageSize)
-
 	productIDs := make([]int64, 0)
 	for _, hit := range searchRes.Data.Hits {
 		productIDs = append(productIDs, hit.Id)
@@ -229,10 +222,7 @@ func (d *Product) SearchGoods() ([]proVo.Product, int, int) {
 		return productSearchList, totalNum, totalPage
 	}
 	d.Ids = productIDs
-
-	// 根据商品id获取商品详情
 	productSearchList = d.GetProductByIDs()
-
 	return productSearchList, totalNum, totalPage
 }
 

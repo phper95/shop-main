@@ -6,10 +6,11 @@ require (
 	gitee.com/phper95/pkg/cache v0.0.0-20220703094553-749b8b5434b5
 	gitee.com/phper95/pkg/db v0.0.0-20220703094553-749b8b5434b5
 	gitee.com/phper95/pkg/file v0.0.0-20220703094553-749b8b5434b5
-	gitee.com/phper95/pkg/httpclient v0.0.0-20220722023345-0b3333d26940
+	gitee.com/phper95/pkg/httpclient v0.0.0-20220724162038-b78433a64c97
 	gitee.com/phper95/pkg/mq v0.0.0-20220703094553-749b8b5434b5
 	gitee.com/phper95/pkg/shutdown v0.0.0-20220712131014-476302b4332f
-	gitee.com/phper95/pkg/sign v0.0.0-20220724005356-3daf55542fb6
+	gitee.com/phper95/pkg/sign v0.0.0-20220724162038-b78433a64c97
+	gitee.com/phper95/pkg/strutil v0.0.0-20220724162038-b78433a64c97
 	github.com/Shopify/sarama v1.19.0
 	github.com/astaxie/beego v1.12.3
 	github.com/boombuler/barcode v1.0.1

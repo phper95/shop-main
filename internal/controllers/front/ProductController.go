@@ -11,7 +11,6 @@ import (
 	"shop/pkg/app"
 	"shop/pkg/constant"
 	productEnum "shop/pkg/enums/product"
-	"shop/pkg/global"
 	"shop/pkg/jwt"
 	"shop/pkg/util"
 )
@@ -51,10 +50,7 @@ func (e *ProductController) GoodsList(c *gin.Context) {
 // @Success 200 {object} app.Response
 // @router /api/v1/product/search [get]
 func (e *ProductController) GoodsSearch(c *gin.Context) {
-	var (
-		appG = app.Gin{C: c}
-	)
-
+	var appG = app.Gin{C: c}
 	productService := product_service.Product{
 		Name:       c.Query("keyword"),
 		Enabled:    1,
@@ -70,14 +66,15 @@ func (e *ProductController) GoodsSearch(c *gin.Context) {
 		appG.ResponsePage(http.StatusOK, constant.SUCCESS, vo, total, page)
 		return
 	}
-
-	userid, err := jwt.GetAppUserId(c)
-	if err != nil {
-		global.LOG.Error("GetAppUserId error", err)
-	}
+	userid, _ := jwt.GetAppUserId(c)
 	productService.Uid = userid
 	vo, total, page := productService.SearchGoods()
+	if vo == nil {
+		appG.ResponsePage(http.StatusInternalServerError, constant.ERROR, nil, total, page)
+		return
+	}
 	appG.ResponsePage(http.StatusOK, constant.SUCCESS, vo, total, page)
+	return
 }
 
 // @Title 获取推荐商品
