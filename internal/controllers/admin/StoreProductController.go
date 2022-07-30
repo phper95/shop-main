@@ -81,25 +81,23 @@ func (e *StoreProductController) Post(c *gin.Context) {
 		return
 	}
 
-	//发消息队列
+	//发送变更事件消息
 	defer func() {
 		operation := product.OperationCreate
 		if dto.Id > 0 {
 			operation = product.OperationUpdate
 		}
-		productMsg := models.ProductMsg{
-			operation,
-			&model,
-		}
+		productMsg := models.ProductMsg{operation, &model}
 		msg, _ := json.Marshal(productMsg)
-		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
-			Topic: product.Topic,
-			Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(dto.Id, 10)),
-			Value: mq.KafkaMsgValueEncoder(msg),
-		},
+		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(
+			&sarama.ProducerMessage{
+				Topic: product.Topic,
+				Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(dto.Id, 10)),
+				Value: mq.KafkaMsgValueEncoder(msg),
+			},
 		)
 		if e != nil {
-			global.LOG.Error("send product msg error ", e, "partition :", p, "offset :", o, "id :", dto.Id)
+			global.LOG.Error("send msg error", e, "partion:", p, "offset", o, "id", dto.Id)
 		}
 	}()
 
@@ -122,7 +120,6 @@ func (e *StoreProductController) OnSale(c *gin.Context) {
 		return
 	}
 	id := com.StrTo(c.Param("id")).MustInt64()
-
 	productService := product_service.Product{
 		SaleDto: dto,
 		Id:      id,
@@ -132,27 +129,27 @@ func (e *StoreProductController) OnSale(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, constant.FAIL_ADD_DATA, nil)
 		return
 	}
+
+	//发送变更事件消息
 	defer func() {
 		operation := product.OperationOnSale
 		if dto.Status == 0 {
 			operation = product.OperationUnSale
 		}
 		productInfo := models.GetProduct(id)
-		productMsg := models.ProductMsg{
-			operation,
-			&productInfo,
-		}
+
+		productMsg := models.ProductMsg{operation, &productInfo}
 		msg, _ := json.Marshal(productMsg)
-		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
-			Topic: product.Topic,
-			Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(id, 10)),
-			Value: mq.KafkaMsgValueEncoder(msg),
-		},
+		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(
+			&sarama.ProducerMessage{
+				Topic: product.Topic,
+				Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(id, 10)),
+				Value: mq.KafkaMsgValueEncoder(msg),
+			},
 		)
 		if e != nil {
-			global.LOG.Error("send product msg error ", e, "partition :", p, "offset :", o, "id :", id)
+			global.LOG.Error("send msg error", e, "partion:", p, "offset", o, "id", id)
 		}
-
 	}()
 
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)
@@ -182,23 +179,21 @@ func (e *StoreProductController) Delete(c *gin.Context) {
 		return
 	}
 
+	//发送变更事件消息
 	defer func() {
-
-		productMsg := models.ProductMsg{
-			product.OperationDelete,
-			&productInfo,
-		}
+		operation := product.OperationDelete
+		productMsg := models.ProductMsg{operation, &productInfo}
 		msg, _ := json.Marshal(productMsg)
-		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{
-			Topic: product.Topic,
-			Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(id, 10)),
-			Value: mq.KafkaMsgValueEncoder(msg),
-		},
+		p, o, e := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(
+			&sarama.ProducerMessage{
+				Topic: product.Topic,
+				Key:   mq.KafkaMsgValueStrEncoder(strconv.FormatInt(id, 10)),
+				Value: mq.KafkaMsgValueEncoder(msg),
+			},
 		)
 		if e != nil {
-			global.LOG.Error("send product msg error ", e, "partition :", p, "offset :", o, "id :", id)
+			global.LOG.Error("send msg error", e, "partion:", p, "offset", o, "id", id)
 		}
-
 	}()
 
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)

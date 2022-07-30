@@ -4,6 +4,7 @@ import "time"
 
 type Config struct {
 	App      App      `mapstructure:"app" yaml:"app"`
+	Api      Api      `mapstructure:"api" yaml:"api"`
 	Database Database `mapstructure:"database" yaml:"database"`
 	Redis    Redis    `mapstructure:"redis" yaml:"redis"`
 	Kafka    Kafka    `mapstructure:"kafka" yaml:"kafka"`
@@ -33,6 +34,11 @@ type App struct {
 	LogSaveName string `mapstructure:"log-save-name" yaml:"log-save-name"`
 	LogFileExt  string `mapstructure:"log-file-ext" yaml:"log-file-ext"`
 	TimeFormat  string `mapstructure:"time-format" yaml:"time-format"`
+}
+
+type Api struct {
+	SearchProductAK string `mapstructure:"search-product-ak" yaml:"search-product-ak"`
+	SearchProductSK string `mapstructure:"search-product-sk" yaml:"search-product-sk"`
 }
 
 type Database struct {

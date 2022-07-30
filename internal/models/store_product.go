@@ -38,6 +38,7 @@ type StoreProduct struct {
 	BaseModel
 }
 
+//定义商品消息结构
 type ProductMsg struct {
 	Operation string `json:"operation"`
 	*StoreProduct
@@ -81,6 +82,14 @@ func GetAllProduct(pageNUm int, pageSize int, maps interface{}) (int64, []StoreP
 	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Preload("ProductCate").Order("id desc").Find(&data)
 
 	return total, data
+}
+
+func GetProductByIDs(maps interface{}) []StoreProduct {
+	var (
+		data []StoreProduct
+	)
+	global.Db.Where(maps).Preload("ProductCate").Find(&data)
+	return data
 }
 
 func AddProduct(m *StoreProduct) error {

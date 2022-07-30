@@ -177,6 +177,7 @@ func InitRouter() *gin.Engine {
 		apiv1.GET("/category", ApiCategoryControler.GetCateList)
 		apiv1.GET("/index", ApiIndexController.GetIndex)
 		apiv1.GET("/products", ApiProductControler.GoodsList)
+		apiv1.GET("/product/search", ApiProductControler.GoodsSearch)
 		apiv1.GET("/product/detail/:id", ApiProductControler.GoodDetail)
 		apiv1.GET("/product/hot", ApiProductControler.GoodsRecommendList)
 		apiv1.GET("/reply/list/:id", ApiProductControler.ReplyList)

@@ -21,6 +21,10 @@ app:
   Log-file-ext: 'log'
   time-format: 20060102
 
+api:
+  search-product-ak: AK100523687952
+  search-product-sk: W1WTYvJpfeH1YpUjTpeFbEx^DnpQ&35L
+
 database:
   type: 'mysql'
   user: 'root'
