@@ -6,9 +6,9 @@ import (
 
 type ProductAttr struct {
 	Id           int64            `json:"id"`
-	ProductId    int64            `json:"productId"`
-	AttrName     string           `json:"attrName"`
-	AttrValues   string           `json:"attrValues"`
-	AttrValue    []dto2.AttrValue `json:"attrValue"`
-	AttrValueArr []string         `json:"attrValueArr"`
+	ProductId    int64            `json:"product_id"`
+	AttrName     string           `json:"attr_name"`
+	AttrValues   string           `json:"attr_values"`
+	AttrValue    []dto2.AttrValue `json:"attr_value"`
+	AttrValueArr []string         `json:"attr_value_arr"`
 }

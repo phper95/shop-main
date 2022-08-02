@@ -8,9 +8,9 @@ import (
 
 type StoreProductAttr struct {
 	Id         int64  `json:"id"`
-	ProductId  int64  `json:"productId" valid:"Required;"`
-	AttrName   string `json:"attrName" valid:"Required;"`
-	AttrValues string `json:"attrValues" valid:"Required;"`
+	ProductId  int64  `json:"product_id" valid:"Required;"`
+	AttrName   string `json:"attr_name" valid:"Required;"`
+	AttrValues string `json:"attr_values" valid:"Required;"`
 }
 
 func (StoreProductAttr) TableName() string {

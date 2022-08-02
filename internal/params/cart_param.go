@@ -6,13 +6,13 @@ import (
 )
 
 type CartParam struct {
-	ProductId     int64  `json:"productId"`
-	UniqueId      string `json:"uniqueId"`
-	CartNum       int    `json:"cartNum"`
-	IsNew         int8   `json:"isNew"`
-	CombinationId int64  `json:"combinationId"`
-	SeckillId     int64  `json:"seckillId"`
-	BargainId     int64  `json:"bargainId"`
+	ProductId     int64  `json:"product_id"`
+	UniqueId      string `json:"unique_id"`
+	CartNum       int    `json:"cart_num"`
+	IsNew         int8   `json:"is_new"`
+	CombinationId int64  `json:"combination_id"`
+	SeckillId     int64  `json:"seckill_id"`
+	BargainId     int64  `json:"bargain_id"`
 }
 
 func (p *CartParam) Valid(v *validation.Validation) {

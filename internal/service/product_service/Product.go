@@ -265,8 +265,8 @@ func (d *Product) GetDetail() (*proVo.ProductDetail, error) {
 	//todo
 	detail := proVo.ProductDetail{
 		StoreInfo:    productVo,
-		ProductAttr:  returnMap["productAttr"].([]proVo.ProductAttr),
-		ProductValue: returnMap["productValue"].(map[string]models.StoreProductAttrValue),
+		ProductAttr:  returnMap["product_attr"].([]proVo.ProductAttr),
+		ProductValue: returnMap["product_value"].(map[string]models.StoreProductAttrValue),
 	}
 
 	return &detail, nil
