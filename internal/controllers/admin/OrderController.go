@@ -12,6 +12,7 @@ import (
 	"shop/internal/service/order_service/dto"
 	"shop/pkg/app"
 	"shop/pkg/constant"
+	orderEnum "shop/pkg/enums/order"
 	"shop/pkg/global"
 	"shop/pkg/util"
 )
@@ -93,6 +94,17 @@ func (e *OrderController) Put(c *gin.Context) {
 		return
 	}
 
+	//发送订单变更通知
+	defer func() {
+		_, order, err := orderService.GetOrderInfo()
+		if err != nil {
+			global.LOG.Error("GetOrderInfo error order_id", orderService.OrderId)
+		} else {
+			orderService.M = order
+			orderService.OrderEvent(orderEnum.OperationUpdate)
+		}
+	}()
+
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)
 }
 
@@ -119,6 +131,17 @@ func (e *OrderController) Deliver(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, constant.FAIL_ADD_DATA, nil)
 		return
 	}
+
+	//发送订单变更通知
+	defer func() {
+		_, order, err := orderService.GetOrderInfo()
+		if err != nil {
+			global.LOG.Error("GetOrderInfo error order_id", orderService.OrderId)
+		} else {
+			orderService.M = order
+			orderService.OrderEvent(orderEnum.OperationUpdate)
+		}
+	}()
 
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)
 }
@@ -175,5 +198,15 @@ func (e *OrderController) Delete(c *gin.Context) {
 		return
 	}
 
+	//发送订单变更通知
+	defer func() {
+		_, order, err := orderService.GetOrderInfo()
+		if err != nil {
+			global.LOG.Error("GetOrderInfo error order_id", orderService.OrderId)
+		} else {
+			orderService.M = order
+			orderService.OrderEvent(orderEnum.OperationDelete)
+		}
+	}()
 	appG.Response(http.StatusOK, constant.SUCCESS, nil)
 }
