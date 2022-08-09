@@ -7,9 +7,7 @@ import (
 )
 
 func TestAuth(t *testing.T) {
-	err := db.InitMysqlClient(db.DefaultClient, global.CONFIG.Database.User,
-		global.CONFIG.Database.Password, global.CONFIG.Database.Host,
-		global.CONFIG.Database.Name)
+	err := db.InitMysqlClient(db.DefaultClient, "root", "admin123", "127.0.0.1:3306", "shop")
 	if err != nil {
 		t.Error("InitMysqlClient error", err, "client", db.DefaultClient)
 	}
