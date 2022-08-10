@@ -60,6 +60,12 @@ type StoreOrder struct {
 	BaseModel
 }
 
+//定义订单消息结构
+type OrderMsg struct {
+	Operation string `json:"operation"`
+	*StoreOrder
+}
+
 func (StoreOrder) TableName() string {
 	return "store_order"
 }

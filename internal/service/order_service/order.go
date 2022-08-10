@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"gitee.com/phper95/pkg/cache"
+	"gitee.com/phper95/pkg/mq"
+	"github.com/Shopify/sarama"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
 	"github.com/segmentio/ksuid"
@@ -111,7 +113,7 @@ func (d *Order) GetList() ([]ordervo.StoreOrder, int, int) {
 }
 
 //取消订单
-func (d *Order) CancelOrder() error {
+func (d *Order) CancelOrder() (*models.StoreOrder, error) {
 	var err error
 	tx := global.Db.Begin()
 	defer func() {
@@ -121,27 +123,27 @@ func (d *Order) CancelOrder() error {
 			tx.Commit()
 		}
 	}()
-	order, err := d.GetOrderInfo()
+	order, mOrder, err := d.GetOrderInfo()
 	if err != nil {
-		return errors.New("订单不存在")
+		return mOrder, errors.New("订单不存在")
 	}
 	if order.Paid == 1 {
-		return errors.New("支付订单不可以取消")
+		return mOrder, errors.New("支付订单不可以取消")
 	}
 	err = RegressionStock(tx, order)
 	if err != nil {
 		global.LOG.Error(err)
-		return errors.New("取消失败-001")
+		return mOrder, errors.New("取消失败-001")
 	}
 
 	//删除订单
 	err = tx.Where("id = ?", order.Id).Delete(&models.StoreOrder{}).Error
 	if err != nil {
 		global.LOG.Error(err)
-		return errors.New("取消失败-002")
+		return mOrder, errors.New("取消失败-002")
 	}
 
-	return nil
+	return mOrder, nil
 
 }
 
@@ -172,7 +174,7 @@ func RegressionStock(tx *gorm.DB, order *ordervo.StoreOrder) error {
 //todo 回退优惠券
 
 //订单评价
-func (d *Order) OrderComment() error {
+func (d *Order) OrderComment() (*models.StoreOrder, error) {
 	var err error
 	tx := global.Db.Begin()
 	defer func() {
@@ -182,9 +184,9 @@ func (d *Order) OrderComment() error {
 			tx.Commit()
 		}
 	}()
-	order, err := d.GetOrderInfo()
+	order, mOrder, err := d.GetOrderInfo()
 	if err != nil {
-		return errors.New("订单不存在")
+		return mOrder, errors.New("订单不存在")
 	}
 	var replys []models.StoreProductReply
 	for _, data := range d.ReplyParam {
@@ -204,18 +206,19 @@ func (d *Order) OrderComment() error {
 		"product_score", "service_score", "comment", "pics", "unique").Create(replys).Error
 	if err != nil {
 		global.LOG.Error(err)
-		return errors.New("评价失败-0001")
+		return mOrder, errors.New("评价失败-0001")
 	}
 	err = tx.Model(&models.StoreOrder{}).Where("id = ?", order.Id).Update("status", 3).Error
 	if err != nil {
 		global.LOG.Error(err)
-		return errors.New("评价失败-0002")
+		return mOrder, errors.New("评价失败-0002")
 	}
-	return nil
+	mOrder.Status = 3
+	return mOrder, nil
 }
 
 //收货
-func (d *Order) TakeOrder() error {
+func (d *Order) TakeOrder() (*models.StoreOrder, error) {
 	var err error
 	tx := global.Db.Begin()
 	defer func() {
@@ -225,41 +228,44 @@ func (d *Order) TakeOrder() error {
 			tx.Commit()
 		}
 	}()
-	order, err := d.GetOrderInfo()
+	order, mOrder, err := d.GetOrderInfo()
 	if err != nil {
-		return errors.New("订单不存在")
+		return mOrder, errors.New("订单不存在")
 	}
 	if order.Status != 1 {
-		return errors.New("订单状态错误")
+		return mOrder, errors.New("订单状态错误")
 	}
 
 	//修改订单状态
 	err = tx.Model(&models.StoreOrder{}).Where("id = ?", order.Id).Update("status", 2).Error
-	//增加状态
-	err = models.AddStoreOrderStatus(tx, order.Id, "user_take_delivery", "用户已收货")
+	if err == nil {
+		mOrder.Status = 2
+		//增加状态
+		err = models.AddStoreOrderStatus(tx, order.Id, "user_take_delivery", "用户已收货")
 
-	//奖励积分
-	if order.GainIntegral > 0 {
-		err = tx.Exec("update user set integral = integral + ?"+
-			" where id = ?", order.Uid, order.GainIntegral).Error
-		if err != nil {
-			global.LOG.Error(err)
-			return err
-		}
-		//增加流水
-		number, _ := com.StrTo(order.GainIntegral).Float64()
-		mark := "购买商品赠送积分" + com.ToStr(order.GainIntegral) + "积分"
-		err = models.Income(tx, order.Uid, "购买商品赠送积分", "integral", "gain",
-			mark, com.ToStr(order.Id), number, number)
-		if err != nil {
-			global.LOG.Error(err)
-			return err
+		//奖励积分
+		if order.GainIntegral > 0 {
+			err = tx.Exec("update user set integral = integral + ?"+
+				" where id = ?", order.Uid, order.GainIntegral).Error
+			if err != nil {
+				global.LOG.Error(err)
+				return mOrder, err
+			}
+			//增加流水
+			number, _ := com.StrTo(order.GainIntegral).Float64()
+			mark := "购买商品赠送积分" + com.ToStr(order.GainIntegral) + "积分"
+			err = models.Income(tx, order.Uid, "购买商品赠送积分", "integral", "gain",
+				mark, com.ToStr(order.Id), number, number)
+			if err != nil {
+				global.LOG.Error(err)
+				return mOrder, err
+			}
 		}
 	}
 
 	//todo 分销
 
-	return nil
+	return mOrder, nil
 }
 
 //创建订单
@@ -403,7 +409,7 @@ func (d *Order) CreateOrder() (*models.StoreOrder, error) {
 	return storeOrder, nil
 }
 
-func (d *Order) GetOrderInfo() (*ordervo.StoreOrder, error) {
+func (d *Order) GetOrderInfo() (*ordervo.StoreOrder, *models.StoreOrder, error) {
 	var (
 		order *models.StoreOrder
 		vo    ordervo.StoreOrder
@@ -418,11 +424,11 @@ func (d *Order) GetOrderInfo() (*ordervo.StoreOrder, error) {
 		Where(maps).First(&order).Error
 	if err != nil {
 		global.LOG.Error(err)
-		return nil, err
+		return nil, nil, err
 	}
 	copier.Copy(&vo, order)
 
-	return &vo, nil
+	return &vo, order, nil
 }
 
 //处理订单状态
@@ -734,23 +740,23 @@ func (d *Order) GetAll() vo.ResultList {
 	return vo.ResultList{Content: newList, TotalElements: total}
 }
 
-func orderStatus(paid, status, refund_status int) int {
+func orderStatus(paid, status, refundStatus int) int {
 	//todo  1-未付款 2-未发货 3-退款中 4-待收货 5-待评价 6-已完成 7-已退款
 	_status := 0
 
-	if paid == 0 && status == 0 && refund_status == 0 {
+	if paid == 0 && status == 0 && refundStatus == 0 {
 		_status = 1
-	} else if paid == 1 && status == 0 && refund_status == 0 {
+	} else if paid == 1 && status == 0 && refundStatus == 0 {
 		_status = 2
-	} else if paid == 1 && refund_status == 1 {
+	} else if paid == 1 && refundStatus == 1 {
 		_status = 3
-	} else if paid == 1 && status == 1 && refund_status == 0 {
+	} else if paid == 1 && status == 1 && refundStatus == 0 {
 		_status = 4
-	} else if paid == 1 && status == 2 && refund_status == 0 {
+	} else if paid == 1 && status == 2 && refundStatus == 0 {
 		_status = 5
-	} else if paid == 1 && status == 3 && refund_status == 0 {
+	} else if paid == 1 && status == 3 && refundStatus == 0 {
 		_status = 6
-	} else if paid == 1 && refund_status == 2 {
+	} else if paid == 1 && refundStatus == 2 {
 		_status = 7
 	}
 
@@ -758,25 +764,25 @@ func orderStatus(paid, status, refund_status int) int {
 
 }
 
-func orderStatusStr(paid, status, shipping_type, refund_status int) string {
+func orderStatusStr(paid, status, shippingType, refundStatus int) string {
 	statusName := ""
 	if paid == 0 && status == 0 {
 		statusName = "未支付"
-	} else if paid == 1 && status == 0 && shipping_type == 1 && refund_status == 0 {
+	} else if paid == 1 && status == 0 && shippingType == 1 && refundStatus == 0 {
 		statusName = "未发货"
-	} else if paid == 1 && status == 0 && shipping_type == 2 && refund_status == 0 {
+	} else if paid == 1 && status == 0 && shippingType == 2 && refundStatus == 0 {
 		statusName = "未核销"
-	} else if paid == 1 && status == 1 && shipping_type == 1 && refund_status == 0 {
+	} else if paid == 1 && status == 1 && shippingType == 1 && refundStatus == 0 {
 		statusName = "待收货"
-	} else if paid == 1 && status == 1 && shipping_type == 2 && refund_status == 0 {
+	} else if paid == 1 && status == 1 && shippingType == 2 && refundStatus == 0 {
 		statusName = "未核销"
-	} else if paid == 1 && status == 2 && refund_status == 0 {
+	} else if paid == 1 && status == 2 && refundStatus == 0 {
 		statusName = "待评价"
-	} else if paid == 1 && status == 3 && refund_status == 0 {
+	} else if paid == 1 && status == 3 && refundStatus == 0 {
 		statusName = "已完成"
-	} else if paid == 1 && refund_status == 1 {
+	} else if paid == 1 && refundStatus == 1 {
 		statusName = "退款中"
-	} else if paid == 1 && refund_status == 2 {
+	} else if paid == 1 && refundStatus == 2 {
 		statusName = "已退款"
 	}
 
@@ -820,4 +826,18 @@ func (d *Order) Deliver() error {
 	d.M.Status = 1
 	d.M.DeliverySn = express.Code
 	return models.UpdateByStoreOrder(d.M)
+}
+
+func (d *Order) OrderEvent(operation string) {
+	orderMsg := models.OrderMsg{Operation: operation, StoreOrder: d.M}
+	msg, err := json.Marshal(orderMsg)
+	if err != nil {
+		global.LOG.Error("json.Marshal error", d)
+		return
+	}
+	p, o, err := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{Key: mq.KafkaMsgValueStrEncoder(strconv.FormatInt(d.Uid, 10)),
+		Value: mq.KafkaMsgValueEncoder(msg), Topic: orderEnum.Topic})
+	if err != nil {
+		global.LOG.Error("KafkaSyncProducer error", err, "partion : ", p, "offset : ", o)
+	}
 }

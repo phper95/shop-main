@@ -37,7 +37,7 @@ func GoPay(returnMap map[string]interface{}, orderId, payType, from string,
 				Uid:     uid,
 				OrderId: orderId,
 			}
-			orderInfo, _ := orderService.GetOrderInfo()
+			orderInfo, _, _ := orderService.GetOrderInfo()
 			//expire := time.Now().Add(10 * time.Minute).Format(time.RFC3339)
 			bm := make(gopay.BodyMap)
 			bm.Set("nonce_str", util.RandomString(32)).
@@ -79,22 +79,27 @@ func GoPay(returnMap map[string]interface{}, orderId, payType, from string,
 //余额支付
 func YuePay(orderId string, uid int64) error {
 	var err error
+	orderService := order_service.Order{
+		Uid:     uid,
+		OrderId: orderId,
+	}
+	orderInfo, order, _ := orderService.GetOrderInfo()
+	if orderInfo.Paid == 1 {
+		return errors.New("订单已经支付")
+	}
+
 	tx := global.Db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
 		} else {
 			tx.Commit()
+			//提交事务修改订单状态就可以发送变更事件了
+			orderService.OrderEvent(orderEnum.OperationUpdate)
+
 		}
 	}()
-	orderService := order_service.Order{
-		Uid:     uid,
-		OrderId: orderId,
-	}
-	orderInfo, _ := orderService.GetOrderInfo()
-	if orderInfo.Paid == 1 {
-		return errors.New("订单已经支付")
-	}
+
 	userService := wechat_user_service.User{
 		Id: uid,
 	}
@@ -109,22 +114,23 @@ func YuePay(orderId string, uid int64) error {
 		global.LOG.Error(err)
 		return errors.New("余额支付失败-0001")
 	}
-	err = PaySuccess(tx, orderInfo.OrderId, "yue")
+	order, err = PaySuccess(tx, orderInfo.OrderId, "yue")
 	if err != nil {
 		global.LOG.Error(err)
 		return errors.New("余额支付失败-0002")
 	}
+	orderService.M = order
 	return nil
 }
 
 //支付成功处理
-func PaySuccess(tx *gorm.DB, orderId, payType string) error {
+func PaySuccess(tx *gorm.DB, orderId, payType string) (*models.StoreOrder, error) {
 	var err error
 
 	orderService := order_service.Order{
 		OrderId: orderId,
 	}
-	orderInfo, _ := orderService.GetOrderInfo()
+	orderInfo, order, _ := orderService.GetOrderInfo()
 
 	//修改订单状态
 	updateOrder := &models.StoreOrder{
@@ -136,21 +142,24 @@ func PaySuccess(tx *gorm.DB, orderId, payType string) error {
 
 	if err != nil {
 		global.LOG.Error(err)
-		return err
+		return order, err
 	}
+	order.Paid = updateOrder.Paid
+	order.PayType = updateOrder.PayType
+	order.PayTime = updateOrder.PayTime
 
 	//增加用户购买次数
 	err = tx.Exec("update user set pay_count = pay_count + 1"+
 		" where id = ?", orderInfo.Uid).Error
 	if err != nil {
 		global.LOG.Error(err)
-		return err
+		return order, err
 	}
 	//增加状态
 	err = models.AddStoreOrderStatus(tx, orderInfo.Id, "pay_success", "用户付款成功")
 	if err != nil {
 		global.LOG.Error(err)
-		return err
+		return order, err
 	}
 
 	userServie := wechat_user_service.User{Id: orderInfo.Uid}
@@ -165,9 +174,9 @@ func PaySuccess(tx *gorm.DB, orderId, payType string) error {
 		mark, com.ToStr(orderInfo.Id), orderInfo.PayPrice, userInfo.NowMoney)
 	if err != nil {
 		global.LOG.Error(err)
-		return err
+		return order, err
 	}
 
-	return nil
+	return order, nil
 	//todo 消息通知
 }

@@ -1,9 +1,6 @@
 package front
 
 import (
-	"encoding/json"
-	"gitee.com/phper95/pkg/mq"
-	"github.com/Shopify/sarama"
 	"github.com/gin-gonic/gin"
 	"github.com/go-pay/gopay/wechat"
 	"github.com/unknwon/com"
@@ -14,10 +11,10 @@ import (
 	"shop/internal/service/pay_service"
 	"shop/pkg/app"
 	"shop/pkg/constant"
+	orderEnum "shop/pkg/enums/order"
 	"shop/pkg/global"
 	"shop/pkg/jwt"
 	"shop/pkg/util"
-	"strconv"
 )
 
 // Order api
@@ -126,17 +123,10 @@ func (e *OrderController) Create(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
-	orderMsg, err := json.Marshal(order)
-	if err != nil {
-		global.LOG.Error(" json.Marshal error ", err, order)
-	} else {
-		//写消息队列
-		p, o, err := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{Key: mq.KafkaMsgValueStrEncoder(strconv.FormatInt(uid, 10)),
-			Value: mq.KafkaMsgValueEncoder(orderMsg)})
-		if err != nil {
-			global.LOG.Error("KafkaSyncProducer error", err, "partion : ", p, "offset : ", o)
-		}
-	}
+
+	defer func() {
+		orderService.OrderEvent(orderEnum.OperationCreate)
+	}()
 
 	orderExtendDto := &orderDto.OrderExtend{
 		Key:     key,
@@ -182,6 +172,11 @@ func (e *OrderController) Pay(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
+
+	defer func() {
+
+	}()
+
 	appG.Response(http.StatusOK, constant.SUCCESS, newMap)
 
 }
@@ -219,7 +214,7 @@ func (e *OrderController) OrderDetail(c *gin.Context) {
 		//OrderParam: &param,
 		OrderId: key,
 	}
-	order, _ := orderService.GetOrderInfo()
+	order, _, _ := orderService.GetOrderInfo()
 
 	newOrder := order_service.HandleOrder(order)
 
@@ -268,9 +263,15 @@ func (e *OrderController) TakeOrder(c *gin.Context) {
 		Uid:     uid,
 	}
 
-	if err := orderService.TakeOrder(); err != nil {
+	if order, err := orderService.TakeOrder(); err != nil {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
+	} else {
+		//发送事件通知
+		orderService.M = order
+		defer func() {
+			orderService.OrderEvent(orderEnum.OperationUpdate)
+		}()
 	}
 	appG.Response(http.StatusOK, constant.SUCCESS, "success")
 
@@ -294,9 +295,15 @@ func (e *OrderController) OrderComment(c *gin.Context) {
 		ReplyParam: param,
 	}
 
-	if err := orderService.OrderComment(); err != nil {
+	if order, err := orderService.OrderComment(); err != nil {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
+	} else {
+		orderService.M = order
+		//发送订单变更通知
+		defer func() {
+			orderService.OrderEvent(orderEnum.OperationUpdate)
+		}()
 	}
 	appG.Response(http.StatusOK, constant.SUCCESS, "ok")
 
@@ -323,9 +330,15 @@ func (e *OrderController) CancelOrder(c *gin.Context) {
 		Uid:     uid,
 	}
 
-	if err := orderService.CancelOrder(); err != nil {
+	if order, err := orderService.CancelOrder(); err != nil {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
+	} else {
+		//发送订单变更通知
+		orderService.M = order
+		defer func() {
+			orderService.OrderEvent(orderEnum.OperationDelete)
+		}()
 	}
 	appG.Response(http.StatusOK, constant.SUCCESS, "success")
 
