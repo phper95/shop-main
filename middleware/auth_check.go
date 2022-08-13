@@ -1,9 +1,12 @@
 package middleware
 
 import (
+	"gitee.com/phper95/pkg/sign"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"regexp"
+	"shop/internal/models"
+	"shop/internal/service/auth_service"
 	"shop/pkg/app"
 	"shop/pkg/constant"
 	"shop/pkg/global"
@@ -105,6 +108,69 @@ func Jwt() gin.HandlerFunc {
 		c.Next()
 
 	}
+}
+
+func Auth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var data interface{}
+		appG := &app.Gin{C: c}
+		// header信息校验
+		authorization := c.GetHeader(constant.HeaderAuthField)
+		authorizationDate := c.GetHeader(constant.HeaderAuthDateField)
+		if len(authorization) == 0 || len(authorizationDate) == 0 {
+			appG.Response(http.StatusUnauthorized, constant.ERROR_AUTH, data)
+			logging.Error(" empty authorization header info", authorization, authorizationDate)
+			c.Abort()
+			return
+		}
+		// 通过签名信息获取 key
+		authorizationSplit := strings.Split(authorization, " ")
+		if len(authorizationSplit) < 2 {
+			appG.Response(http.StatusUnauthorized, constant.ERROR_AUTH, data)
+			logging.Error("authorizationSplit error", authorizationSplit)
+			c.Abort()
+			return
+		}
+
+		//解析参数
+		err := c.Request.ParseForm()
+		if err != nil {
+			appG.Response(http.StatusForbidden, constant.INVALID_PARAMS, data)
+			c.Abort()
+			return
+		}
+		key := authorizationSplit[0]
+		authService := auth_service.Auth{}
+		auth, err := authService.DetailByKey(key)
+		if err != nil {
+			appG.Response(http.StatusUnauthorized, constant.ERROR_AUTH, data)
+			logging.Error("DetailByKey error", err, authorizationSplit)
+			c.Abort()
+			return
+		}
+
+		if auth.IsUsed == models.IsUsedNo {
+			appG.Response(http.StatusUnauthorized, constant.ERROR_AUTH, data)
+			logging.Error("IsUsed error", authorizationSplit)
+			c.Abort()
+			return
+		}
+
+		ok, err := sign.New(key, auth.BusinessSecret, constant.HeaderSignTokenTimeoutSeconds).Verify(authorization, authorizationDate,
+			c.Request.URL.Path, c.Request.Method, c.Request.Form)
+		if err != nil {
+			appG.Response(http.StatusUnauthorized, constant.ERROR_AUTH, data)
+			logging.Error("sign verify error", err)
+		}
+		if !ok {
+			appG.Response(http.StatusUnauthorized, constant.ERROR_AUTH, data)
+			logging.Error("sign verify not ok")
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+
 }
 
 //url排除

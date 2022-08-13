@@ -6,6 +6,7 @@ import (
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"net/http"
 	"shop/internal/controllers/admin"
+	"shop/internal/controllers/dev"
 	"shop/internal/controllers/front"
 	"shop/middleware"
 	"shop/pkg/upload"
@@ -213,6 +214,13 @@ func InitRouter() *gin.Engine {
 		authApiv1.POST("/order/comments/:key", ApiOrderController.OrderComment)
 		authApiv1.POST("/order/cancel", ApiOrderController.CancelOrder)
 		authApiv1.GET("/collect/user", ApiUserController.CollectUser)
+	}
+
+	devOrderController := dev.OrderController{}
+	//开发者api
+	devApiv1 := r.Group("/dev/v1").Use(middleware.Auth())
+	{
+		devApiv1.GET("/orders/user/:uid", devOrderController.GetUserOrders)
 	}
 
 	return r

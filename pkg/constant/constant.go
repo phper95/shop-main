@@ -21,4 +21,8 @@ const (
 
 	//签名失效时间
 	AuthorizationExpire = time.Minute * 30
+
+	RedisKeyPrefixSignature       = "sign:"
+	RedisSignatureCacheSeconds    = 300 * time.Second
+	HeaderSignTokenTimeoutSeconds = 300 * time.Second
 )

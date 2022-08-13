@@ -5,12 +5,12 @@ import (
 )
 
 type ProductDetail struct {
-	ProductAttr  []ProductAttr                           `json:"productAttr"`
-	ProductValue map[string]models.StoreProductAttrValue `json:"productValue"`
+	ProductAttr  []ProductAttr                           `json:"product_attr"`
+	ProductValue map[string]models.StoreProductAttrValue `json:"product_value"`
 	Reply        models.StoreProductReply                `json:"reply"`
-	ReplyChance  string                                  `json:"replyChance"`
-	ReplyCount   string                                  `json:"replyCount"`
-	StoreInfo    Product                                 `json:"storeInfo"`
+	ReplyChance  string                                  `json:"reply_chance"`
+	ReplyCount   string                                  `json:"reply_count"`
+	StoreInfo    Product                                 `json:"store_info"`
 	Uid          int64                                   `json:"uid"`
-	TempName     string                                  `json:"tempName"`
+	TempName     string                                  `json:"temp_name"`
 }
