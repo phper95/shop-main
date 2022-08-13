@@ -42,13 +42,13 @@ func GetAllBusiness(pageNUm int, pageSize int, maps interface{}) (int64, []Auth)
 	)
 
 	global.Db.Model(&Auth{}).Where(maps).Count(&total)
-	global.Db.Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
+	global.Db.Model(&Auth{}).Where(maps).Offset(pageNUm).Limit(pageSize).Order("id desc").Find(&data)
 
 	return total, data
 }
 
 func GetBusinessByKey(ak string) (auth *Auth, err error) {
-	err = global.Db.Model(&Auth{}).Where("business_key = ?", ak).First(auth).Error
+	err = global.Db.Model(&Auth{}).Where("business_key = ?", ak).First(&auth).Error
 	return
 }
 

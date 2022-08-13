@@ -220,7 +220,7 @@ func InitRouter() *gin.Engine {
 	//开发者api
 	devApiv1 := r.Group("/dev/v1").Use(middleware.Auth())
 	{
-		devApiv1.GET("/orders/user/:key", devOrderController.GetUserOrders)
+		devApiv1.GET("/orders/user/:uid", devOrderController.GetUserOrders)
 	}
 
 	return r

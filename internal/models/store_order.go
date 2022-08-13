@@ -93,6 +93,14 @@ func GetAdminAllOrder(pageNUm int, pageSize int, maps interface{}) (int64, []Sto
 
 	return total, data
 }
+func GetOrderUseCursor(userID, nextID int64, pageSize int) []StoreOrder {
+	var (
+		data []StoreOrder
+	)
+	global.Db.Where("uid = ? AND id > ?", userID, nextID).Limit(pageSize).Preload("UserDto").Order("id asc").Find(&data)
+
+	return data
+}
 
 func AddStoreOrder(m *StoreOrder) error {
 	var err error

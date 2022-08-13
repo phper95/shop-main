@@ -144,7 +144,7 @@ func Auth() gin.HandlerFunc {
 		auth, err := authService.DetailByKey(key)
 		if err != nil {
 			appG.Response(http.StatusUnauthorized, constant.ERROR_AUTH, data)
-			logging.Error("DetailByKey error", authorizationSplit)
+			logging.Error("DetailByKey error", err, authorizationSplit)
 			c.Abort()
 			return
 		}

@@ -29,16 +29,19 @@ func (e *OrderController) GetUserOrders(c *gin.Context) {
 	var (
 		appG = app.Gin{C: c}
 	)
-	enabled := com.StrTo(c.DefaultQuery("enabled", "-1")).MustInt()
-	name := c.DefaultQuery("blurry", "")
-	orderService := order_service.Order{
-		Enabled:  enabled,
-		Name:     name,
-		PageSize: util.GetSize(c),
-		PageNum:  util.GetPage(c),
-		IntType:  com.StrTo(c.Query("order_status")).MustInt(),
+	nextID := com.StrTo(c.DefaultQuery("next_id", "0")).MustInt64()
+	userID := com.StrTo(c.Param("uid")).MustInt64()
+	if userID <= 0 {
+		appG.Response(http.StatusBadRequest, constant.INVALID_PARAMS, nil)
+		return
 	}
-	vo := orderService.GetAll()
+	//用户存在性校验？
+
+	orderService := order_service.Order{
+		PageSize: util.GetSize(c),
+		Uid:      userID,
+	}
+	vo := orderService.GetUseCursor(nextID)
 	appG.Response(http.StatusOK, constant.SUCCESS, vo)
 }
 
