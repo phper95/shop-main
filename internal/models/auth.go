@@ -1,7 +1,9 @@
 package models
 
 import (
+	"gorm.io/plugin/soft_delete"
 	"shop/pkg/global"
+	"time"
 )
 
 const (
@@ -10,14 +12,17 @@ const (
 )
 
 type Auth struct {
-	BusinessKey       string `json:"business_key" gorm:"UNIQUE:uniq_business_key"` // 调用方key
-	BusinessSecret    string `json:"business_secret"`                              // 调用方secret
-	BusinessDeveloper string `json:"business_developer"`                           // 调用方对接人
-	Remark            string `json:"remark"`                                       // 备注
-	IsUsed            int32  `json:"is_used"`                                      // 是否启用 1:是  -1:否
-	CreatedUser       string `json:"created_user"`                                 // 创建人
-	UpdatedUser       string `json:"updated_user"`                                 // 更新人
-	BaseModel
+	Id                int64                 `gorm:"primary_key" json:"id"`
+	BusinessKey       string                `json:"business_key" gorm:"UNIQUE:uniq_business_key"` // 调用方key
+	BusinessSecret    string                `json:"business_secret"`                              // 调用方secret
+	BusinessDeveloper string                `json:"business_developer"`                           // 调用方对接人
+	Remark            string                `json:"remark"`                                       // 备注
+	IsUsed            int32                 `json:"is_used"`                                      // 是否启用 1:是  -1:否
+	IsDel             soft_delete.DeletedAt `json:"is_del" gorm:"softDelete:flag"`
+	CreatedUser       string                `json:"created_user"` // 创建人
+	UpdatedUser       string                `json:"updated_user"` // 更新人
+	UpdateAt          time.Time             `json:"update_at"`
+	CreateAt          time.Time             `json:"create_at"`
 }
 
 func (Auth) TableName() string {

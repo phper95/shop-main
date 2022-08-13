@@ -3,11 +3,11 @@ package models
 import "shop/pkg/global"
 
 type StoreCategory struct {
-	CateName string          `json:"cateName" valid:"Required;"`
+	CateName string          `json:"cate_name" valid:"Required;"`
 	Pid      int64           `json:"pid"`
 	Sort     int             `json:"sort"`
 	Pic      string          `json:"pic"`
-	IsShow   int8            `json:"isShow"`
+	IsShow   int8            `json:"is_show"`
 	Children []StoreCategory `gorm:"-" json:"children"`
 	Label    string          `gorm:"-" json:"label"`
 	BaseModel

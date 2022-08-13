@@ -218,11 +218,14 @@ func (d *Product) SearchGoods() ([]proVo.Product, int, int) {
 	for _, hit := range searchRes.Data.Hits {
 		productIDs = append(productIDs, hit.Id)
 	}
+	global.LOG.Warnf("productIDs %v", productIDs)
 	if len(productIDs) == 0 {
 		return productSearchList, totalNum, totalPage
 	}
 	d.Ids = productIDs
+
 	productSearchList = d.GetProductByIDs()
+	global.LOG.Warnf("productSearchList", productSearchList)
 	return productSearchList, totalNum, totalPage
 }
 
@@ -319,8 +322,8 @@ func getProductAttrDetail(productId int64) (map[string]interface{}, error) {
 	}
 
 	returnMap := gin.H{
-		"productAttr":  storeProductAttrList,
-		"productValue": mapp,
+		"product_attr":  storeProductAttrList,
+		"product_value": mapp,
 	}
 	return returnMap, nil
 }
@@ -341,9 +344,9 @@ func (d *Product) AddOrSaveProduct() (model models.StoreProduct, err error) {
 	copier.Copy(&model, &m)
 
 	res := computeProduct(m.Attrs)
-	model.Price = res["minPrice"].(float64)
-	model.OtPrice = res["minOtPrice"].(float64)
-	model.Cost = res["minCost"].(float64)
+	model.Price = res["min_price"].(float64)
+	model.OtPrice = res["min_ot_price"].(float64)
+	model.Cost = res["min_cost"].(float64)
 	model.Stock = res["stock"].(int)
 	images := strings.Join(m.SliderImage, ",")
 	model.SliderImage = images
@@ -482,9 +485,9 @@ func computeProduct(attrs []productDto.ProductFormat) map[string]interface{} {
 	sort.Float64s(minPrice)
 	sort.Float64s(minOtprice)
 	sort.Float64s(minCost)
-	returnMap["minPrice"] = minPrice[0]
-	returnMap["minOtPrice"] = minOtprice[0]
-	returnMap["minCost"] = minCost[0]
+	returnMap["min_price"] = minPrice[0]
+	returnMap["min_ot_price"] = minOtprice[0]
+	returnMap["min_cost"] = minCost[0]
 	returnMap["stock"] = util.GetSum(stock)
 	return returnMap
 }
