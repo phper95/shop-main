@@ -75,7 +75,7 @@ func (e *CartController) AddCart(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
-	appG.Response(http.StatusOK, constant.SUCCESS, gin.H{"cartId": id})
+	appG.Response(http.StatusOK, constant.SUCCESS, gin.H{"cart_id": id})
 
 }
 

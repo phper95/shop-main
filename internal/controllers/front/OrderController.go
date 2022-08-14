@@ -295,15 +295,9 @@ func (e *OrderController) OrderComment(c *gin.Context) {
 		ReplyParam: param,
 	}
 
-	if order, err := orderService.OrderComment(); err != nil {
+	if _, err := orderService.OrderComment(); err != nil {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
-	} else {
-		orderService.M = order
-		//发送订单变更通知
-		defer func() {
-			orderService.OrderEvent(orderEnum.OperationUpdate)
-		}()
 	}
 	appG.Response(http.StatusOK, constant.SUCCESS, "ok")
 

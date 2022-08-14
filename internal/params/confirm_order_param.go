@@ -5,7 +5,7 @@ import (
 )
 
 type ConfirmOrderParam struct {
-	CartId string `json:"cartId"`
+	CartId string `json:"cart_id"`
 }
 
 func (p *ConfirmOrderParam) Valid(v *validation.Validation) {

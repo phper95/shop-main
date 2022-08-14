@@ -57,7 +57,7 @@ func GoPay(returnMap map[string]interface{}, orderId, payType, from string,
 			}
 			global.LOG.Info(wxRsp)
 
-			jsConfig := gin.H{"codeUrl": wxRsp.CodeUrl}
+			jsConfig := gin.H{"code_url": wxRsp.CodeUrl}
 			dto.JsConfig = jsConfig
 			returnMap["payMsg"] = "pc支付成功"
 			returnMap["result"] = dto
