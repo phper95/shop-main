@@ -1,11 +1,14 @@
 package front
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/go-pay/gopay/wechat"
 	"github.com/unknwon/com"
 	"net/http"
+	"shop/internal/models"
 	"shop/internal/params"
+	cartVo "shop/internal/service/cart_service/vo"
 	"shop/internal/service/order_service"
 	orderDto "shop/internal/service/order_service/dto"
 	"shop/internal/service/pay_service"
@@ -123,8 +126,18 @@ func (e *OrderController) Create(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
-
+	//发送订单通知
+	orderService.M = order
 	defer func() {
+		var orderInfoList []models.StoreOrderCartInfo
+		var cart cartVo.Cart
+		global.Db.Model(&models.StoreOrderCartInfo{}).Where("oid = ?", order.Id).Find(&orderInfoList)
+		cartInfo := make([]cartVo.Cart, 0)
+		for _, orderInfo := range orderInfoList {
+			json.Unmarshal([]byte(orderInfo.CartInfo), &cart)
+			cartInfo = append(cartInfo, cart)
+		}
+		orderService.M.CartInfo = cartInfo
 		orderService.OrderEvent(orderEnum.OperationCreate)
 	}()
 
@@ -167,14 +180,30 @@ func (e *OrderController) Pay(c *gin.Context) {
 		"result": orderExtendDto,
 	}
 
-	newMap, err := pay_service.GoPay(returnMap, param.Uni, param.PayType, param.From, uid, orderExtendDto)
+	newMap, order, err := pay_service.GoPay(returnMap, param.Uni, param.PayType, param.From, uid, orderExtendDto)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
-
+	orderService := order_service.Order{
+		Uid: uid,
+	}
+	//发送订单变更通知
+	orderService.M = order
 	defer func() {
-
+		if order != nil {
+			orderService.OrderId = order.OrderId
+			var orderInfoList []models.StoreOrderCartInfo
+			var cart cartVo.Cart
+			global.Db.Model(&models.StoreOrderCartInfo{}).Where("oid = ?", order.Id).Find(&orderInfoList)
+			cartInfo := make([]cartVo.Cart, 0)
+			for _, orderInfo := range orderInfoList {
+				json.Unmarshal([]byte(orderInfo.CartInfo), &cart)
+				cartInfo = append(cartInfo, cart)
+			}
+			orderService.M.CartInfo = cartInfo
+			orderService.OrderEvent(orderEnum.OperationUpdate)
+		}
 	}()
 
 	appG.Response(http.StatusOK, constant.SUCCESS, newMap)
@@ -270,6 +299,15 @@ func (e *OrderController) TakeOrder(c *gin.Context) {
 		//发送事件通知
 		orderService.M = order
 		defer func() {
+			var orderInfoList []models.StoreOrderCartInfo
+			var cart cartVo.Cart
+			global.Db.Model(&models.StoreOrderCartInfo{}).Where("oid = ?", order.Id).Find(&orderInfoList)
+			cartInfo := make([]cartVo.Cart, 0)
+			for _, orderInfo := range orderInfoList {
+				json.Unmarshal([]byte(orderInfo.CartInfo), &cart)
+				cartInfo = append(cartInfo, cart)
+			}
+			orderService.M.CartInfo = cartInfo
 			orderService.OrderEvent(orderEnum.OperationUpdate)
 		}()
 	}
