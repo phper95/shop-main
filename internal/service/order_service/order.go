@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"gitee.com/phper95/pkg/cache"
+	"gitee.com/phper95/pkg/httpclient"
 	"gitee.com/phper95/pkg/mq"
+	"gitee.com/phper95/pkg/sign"
+	"gitee.com/phper95/pkg/strutil"
 	"github.com/Shopify/sarama"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
@@ -12,6 +15,8 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/unknwon/com"
 	"gorm.io/gorm"
+	"net/http"
+	"net/url"
 	"shop/internal/models"
 	"shop/internal/models/vo"
 	"shop/internal/params"
@@ -52,19 +57,38 @@ type Order struct {
 
 	ComputeParam *params.ComputeOrderParam
 	Key          string
+	Keyword      string
 	OrderParam   *params.OrderParam
 	OrderId      string
+	OrderIds     []string
 	IntType      int
 
 	ReplyParam []params.ProductReplyParam
 }
 
-//订单列表 -1全部 默认为0未支付 1待发货 2待收货 3待评价 4已完成
-func (d *Order) GetList() ([]ordervo.StoreOrder, int, int) {
-	maps := make(map[string]interface{})
-	maps["uid"] = d.Uid
+//搜索结果响应结构
+type searchResponse struct {
+	Success bool                `json:"success"`
+	Code    int                 `json:"code"`
+	Msg     string              `json:"msg"`
+	Data    orderSearchResponse `json:"data"`
+}
+type orderSearchResponse struct {
+	Total int64          `json:"total"`
+	Hits  []*orderResult `json:"hits"`
+}
 
-	switch d.IntType {
+type orderResult struct {
+	ordervo.StoreOrder
+	highlight map[string][]string
+}
+
+//订单列表 -1全部 默认为0未支付 1待发货 2待收货 3待评价 4已完成
+func (o *Order) GetList() ([]ordervo.StoreOrder, int, int) {
+	maps := make(map[string]interface{})
+	maps["uid"] = o.Uid
+
+	switch o.IntType {
 	case -1:
 	case 0:
 		maps["paid"] = 0
@@ -98,13 +122,13 @@ func (d *Order) GetList() ([]ordervo.StoreOrder, int, int) {
 	var ListVo []ordervo.StoreOrder
 	var ReturnListVo []ordervo.StoreOrder
 
-	total, list := models.GetAllOrder(d.PageNum, d.PageSize, maps)
+	total, list := models.GetAllOrder(o.PageNum, o.PageSize, maps)
 	e := copier.Copy(&ListVo, list)
 	if e != nil {
 		global.LOG.Error(e)
 	}
 	totalNum := util.Int64ToInt(total)
-	totalPage := util.GetTotalPage(totalNum, d.PageSize)
+	totalPage := util.GetTotalPage(totalNum, o.PageSize)
 	for _, val := range ListVo {
 		vo := HandleOrder(&val)
 		ReturnListVo = append(ReturnListVo, *vo)
@@ -113,7 +137,7 @@ func (d *Order) GetList() ([]ordervo.StoreOrder, int, int) {
 }
 
 //取消订单
-func (d *Order) CancelOrder() (*models.StoreOrder, error) {
+func (o *Order) CancelOrder() (*models.StoreOrder, error) {
 	var err error
 	tx := global.Db.Begin()
 	defer func() {
@@ -123,7 +147,7 @@ func (d *Order) CancelOrder() (*models.StoreOrder, error) {
 			tx.Commit()
 		}
 	}()
-	order, mOrder, err := d.GetOrderInfo()
+	order, mOrder, err := o.GetOrderInfo()
 	if err != nil {
 		return mOrder, errors.New("订单不存在")
 	}
@@ -174,7 +198,7 @@ func RegressionStock(tx *gorm.DB, order *ordervo.StoreOrder) error {
 //todo 回退优惠券
 
 //订单评价
-func (d *Order) OrderComment() (*models.StoreOrder, error) {
+func (o *Order) OrderComment() (*models.StoreOrder, error) {
 	var err error
 	tx := global.Db.Begin()
 	defer func() {
@@ -184,14 +208,14 @@ func (d *Order) OrderComment() (*models.StoreOrder, error) {
 			tx.Commit()
 		}
 	}()
-	order, mOrder, err := d.GetOrderInfo()
+	order, mOrder, err := o.GetOrderInfo()
 	if err != nil {
 		return mOrder, errors.New("订单不存在")
 	}
 	var replys []models.StoreProductReply
-	for _, data := range d.ReplyParam {
+	for _, data := range o.ReplyParam {
 		reply := models.StoreProductReply{
-			Uid:          d.Uid,
+			Uid:          o.Uid,
 			Oid:          order.Id,
 			ProductId:    data.ProductId,
 			ProductScore: data.ProductScore,
@@ -218,7 +242,7 @@ func (d *Order) OrderComment() (*models.StoreOrder, error) {
 }
 
 //收货
-func (d *Order) TakeOrder() (*models.StoreOrder, error) {
+func (o *Order) TakeOrder() (*models.StoreOrder, error) {
 	var err error
 	tx := global.Db.Begin()
 	defer func() {
@@ -228,7 +252,7 @@ func (d *Order) TakeOrder() (*models.StoreOrder, error) {
 			tx.Commit()
 		}
 	}()
-	order, mOrder, err := d.GetOrderInfo()
+	order, mOrder, err := o.GetOrderInfo()
 	if err != nil {
 		return mOrder, errors.New("订单不存在")
 	}
@@ -269,7 +293,7 @@ func (d *Order) TakeOrder() (*models.StoreOrder, error) {
 }
 
 //创建订单
-func (d *Order) CreateOrder() (*models.StoreOrder, error) {
+func (o *Order) CreateOrder() (*models.StoreOrder, error) {
 	var err error
 	tx := global.Db.Begin()
 	defer func() {
@@ -279,13 +303,13 @@ func (d *Order) CreateOrder() (*models.StoreOrder, error) {
 			tx.Commit()
 		}
 	}()
-	d.ComputeParam = &params.ComputeOrderParam{
-		AddressId:    d.OrderParam.AddressId,
-		CouponId:     d.OrderParam.CouponId,
-		UseIntegral:  d.OrderParam.UseIntegral,
-		ShippingType: d.OrderParam.ShippingType,
+	o.ComputeParam = &params.ComputeOrderParam{
+		AddressId:    o.OrderParam.AddressId,
+		CouponId:     o.OrderParam.CouponId,
+		UseIntegral:  o.OrderParam.UseIntegral,
+		ShippingType: o.OrderParam.ShippingType,
 	}
-	computeVo, err := d.ComputeOrder()
+	computeVo, err := o.ComputeOrder()
 	if err != nil {
 		return nil, err
 	}
@@ -300,14 +324,14 @@ func (d *Order) CreateOrder() (*models.StoreOrder, error) {
 		gainIntegral = 0
 	)
 	err = global.Db.Model(&models.UserAddress{}).
-		Where("uid = ?", d.Uid).
-		Where("id = ?", d.OrderParam.AddressId).
+		Where("uid = ?", o.Uid).
+		Where("id = ?", o.OrderParam.AddressId).
 		First(&userAddress).Error
 	if err != nil {
 		return nil, errors.New("地址出错")
 	}
 
-	cacheDto, _ := getCacheOrderInfo(d.Uid, d.Key)
+	cacheDto, _ := getCacheOrderInfo(o.Uid, o.Key)
 	cartInfo := cacheDto.CartInfo
 	for _, cart := range cartInfo {
 		err = cart_service.CheckStock(cart.ProductId, cart.CartNum, cart.ProductAttrUnique)
@@ -328,7 +352,7 @@ func (d *Order) CreateOrder() (*models.StoreOrder, error) {
 	orderSn := worker.GetId()
 	detailAddr := userAddress.Province + " " + userAddress.City + " " + userAddress.District + " " + userAddress.Detail
 	storeOrder := &models.StoreOrder{
-		Uid:            d.Uid,
+		Uid:            o.Uid,
 		OrderId:        strconv.FormatInt(orderSn, 10),
 		RealName:       userAddress.RealName,
 		UserPhone:      userAddress.Phone,
@@ -337,7 +361,7 @@ func (d *Order) CreateOrder() (*models.StoreOrder, error) {
 		TotalNum:       totalNum,
 		TotalPrice:     computeVo.TotalPrice,
 		TotalPostage:   computeVo.PayPostage,
-		CouponId:       d.OrderParam.CouponId,
+		CouponId:       o.OrderParam.CouponId,
 		CouponPrice:    computeVo.CouponPrice,
 		PayPrice:       computeVo.PayPrice,
 		PayPostage:     computeVo.PayPostage,
@@ -346,11 +370,11 @@ func (d *Order) CreateOrder() (*models.StoreOrder, error) {
 		UseIntegral:    computeVo.UseIntegral,
 		BackIntegral:   0,
 		GainIntegral:   gainIntegral,
-		Mark:           d.OrderParam.Mark,
+		Mark:           o.OrderParam.Mark,
 		Cost:           cacheDto.PriceGroup.CostPrice,
-		Unique:         d.Key,
-		ShippingType:   d.OrderParam.ShippingType,
-		PayType:        d.OrderParam.PayType,
+		Unique:         o.Key,
+		ShippingType:   o.OrderParam.ShippingType,
+		PayType:        o.OrderParam.PayType,
 	}
 	err = tx.Model(&models.StoreOrder{}).
 		Select("uid", "order_id", "real_name", "user_phone", "user_address", "cart_id", "total_num",
@@ -409,16 +433,16 @@ func (d *Order) CreateOrder() (*models.StoreOrder, error) {
 	return storeOrder, nil
 }
 
-func (d *Order) GetOrderInfo() (*ordervo.StoreOrder, *models.StoreOrder, error) {
+func (o *Order) GetOrderInfo() (*ordervo.StoreOrder, *models.StoreOrder, error) {
 	var (
 		order *models.StoreOrder
 		vo    ordervo.StoreOrder
 	)
 
 	maps := make(map[string]interface{})
-	maps["order_id"] = d.OrderId
-	if d.Uid > 0 {
-		maps["uid"] = d.Uid
+	maps["order_id"] = o.OrderId
+	if o.Uid > 0 {
+		maps["uid"] = o.Uid
 	}
 	err := global.Db.Model(&models.StoreOrder{}).
 		Where(maps).First(&order).Error
@@ -429,6 +453,117 @@ func (d *Order) GetOrderInfo() (*ordervo.StoreOrder, *models.StoreOrder, error) 
 	copier.Copy(&vo, order)
 
 	return &vo, order, nil
+}
+
+func (o *Order) SearchOrder() ([]*orderResult, int, int) {
+	var orders []*orderResult
+	//请求搜索接口
+	params := url.Values{}
+	params.Add("userid", strutil.Int64ToString(o.Uid))
+	params.Add("keyword", o.Keyword)
+	params.Add("page_num", strconv.Itoa(o.PageNum))
+	params.Add("page_size", strconv.Itoa(o.PageSize))
+
+	global.LOG.Infof("SearchGoods params: %+v", o)
+
+	apiCfg := global.CONFIG.Api
+	searchHost := "http://localhost:9090"
+	searchUri := "/api/v1/order-search"
+	authorization, date, err := sign.New(apiCfg.SearchProductAK, apiCfg.SearchProductSK,
+		constant.AuthorizationExpire).Generate(searchUri, http.MethodGet, params)
+	if err != nil {
+		global.LOG.Error(err, params)
+		return nil, 0, 0
+	}
+	headerAuth := httpclient.WithHeader(constant.HeaderAuthField, authorization)
+	headerAuthDate := httpclient.WithHeader(constant.HeaderAuthDateField, date)
+	httpCode, body, err := httpclient.Get(searchHost+searchUri, params, httpclient.WithTTL(time.Second*5),
+		headerAuth, headerAuthDate)
+	if err != nil || httpCode != http.StatusOK {
+		global.LOG.Error(" httpclient.Get error", err, httpCode, string(body))
+		return nil, 0, 0
+	}
+	searchRes := &searchResponse{}
+	err = json.Unmarshal(body, searchRes)
+	if err != nil {
+		global.LOG.Error("Unmarshal searchResponse error", err, string(body))
+		return nil, 0, 0
+	}
+	if searchRes == nil {
+		return nil, 0, 0
+	}
+	if !searchRes.Success {
+		global.LOG.Error("searchRes failed", string(body), searchRes)
+		return nil, 0, 0
+	}
+
+	totalNum := int(searchRes.Data.Total)
+	totalPage := util.GetTotalPage(totalNum, o.PageSize)
+
+	if len(searchRes.Data.Hits) == 0 {
+		return make([]*orderResult, 0), totalNum, totalPage
+	}
+
+	var orderIDs []string
+	for _, hit := range searchRes.Data.Hits {
+		orderRes := orderResult{
+			StoreOrder: ordervo.StoreOrder{OrderId: hit.OrderId},
+			highlight:  hit.highlight,
+		}
+		orders = append(orders, &orderRes)
+		orderIDs = append(orderIDs, hit.OrderId)
+	}
+	global.LOG.Warnf("orders %+v", orders)
+	if len(orders) == 0 {
+		return orders, totalNum, totalPage
+	}
+	o.OrderIds = orderIDs
+	vos, err := o.GetOrdersInfo()
+	if err != nil {
+		global.LOG.Error("GetOrdersInfo error", err, orderIDs)
+		return nil, 0, 0
+	}
+	orderM := make(map[string]*ordervo.StoreOrder, 0)
+	for _, vo := range vos {
+		//填补购物车信息
+		orderM[vo.OrderId] = HandleOrder(&vo)
+	}
+	var newOrders []*orderResult
+	for _, r := range orders {
+		orderRes := orderResult{
+			StoreOrder: *orderM[r.OrderId],
+			highlight:  r.highlight,
+		}
+		newOrders = append(newOrders, &orderRes)
+	}
+	global.LOG.Warnf("orderSearchList %+v", newOrders)
+	return newOrders, totalNum, totalPage
+}
+
+func (o *Order) GetOrdersInfo() ([]ordervo.StoreOrder, error) {
+	var (
+		orders []*models.StoreOrder
+		vos    []ordervo.StoreOrder
+	)
+
+	maps := make(map[string]interface{})
+	maps["order_id"] = o.OrderIds
+	if o.Uid > 0 {
+		maps["uid"] = o.Uid
+	}
+	err := global.Db.Model(&models.StoreOrder{}).
+		Where(maps).Find(&orders).Error
+	if err != nil {
+		global.LOG.Error(err)
+		return nil, err
+	}
+	for _, order := range orders {
+		vo := ordervo.StoreOrder{}
+		copier.Copy(&vo, order)
+		vos = append(vos, vo)
+	}
+
+	return vos, nil
 }
 
 //处理订单状态
@@ -492,17 +627,17 @@ func HandleOrder(order *ordervo.StoreOrder) *ordervo.StoreOrder {
 	return order
 }
 
-func (d *Order) Check() (map[string]interface{}, error) {
-	if d.Key == "" {
+func (o *Order) Check() (map[string]interface{}, error) {
+	if o.Key == "" {
 		return nil, errors.New("参数错误")
 	}
 	var order *models.StoreOrder
 	error := global.Db.Model(&models.StoreOrder{}).
-		Where("`unique` = ?", d.Key).
-		Where("uid = ?", d.Uid).First(&order).Error
+		Where("`unique` = ?", o.Key).
+		Where("uid = ?", o.Uid).First(&order).Error
 	if error == nil {
 		orderExtendDto := &orderDto.OrderExtend{
-			Key:     d.Key,
+			Key:     o.Key,
 			OrderId: order.OrderId,
 		}
 
@@ -517,8 +652,8 @@ func (d *Order) Check() (map[string]interface{}, error) {
 }
 
 //计算订单
-func (d *Order) ComputeOrder() (*ordervo.Compute, error) {
-	global.LOG.Info(d.ComputeParam)
+func (o *Order) ComputeOrder() (*ordervo.Compute, error) {
+	global.LOG.Info(o.ComputeParam)
 	var (
 		payPostage     = 0.00
 		couponPrice    = 0.00
@@ -526,9 +661,9 @@ func (d *Order) ComputeOrder() (*ordervo.Compute, error) {
 		usedIntegral   = 0
 		payIntegral    = 0
 	)
-	cacheDto, err := getCacheOrderInfo(d.Uid, d.Key)
+	cacheDto, err := getCacheOrderInfo(o.Uid, o.Key)
 	if err != nil {
-		global.LOG.Error("getCacheOrderInfo error", err, "key", d.Key)
+		global.LOG.Error("getCacheOrderInfo error", err, "key", o.Key)
 		return nil, errors.New("订单已过期，请重新刷新当前页面")
 	}
 	payPrice := cacheDto.PriceGroup.TotalPrice
@@ -558,10 +693,10 @@ func (d *Order) ComputeOrder() (*ordervo.Compute, error) {
 }
 
 //确认订单
-func (d *Order) ConfirmOrder() (*ordervo.ConfirmOrder, error) {
+func (o *Order) ConfirmOrder() (*ordervo.ConfirmOrder, error) {
 	cartService := cart_service.Cart{
-		Uid:     d.Uid,
-		CartIds: d.CartId,
+		Uid:     o.Uid,
+		CartIds: o.CartId,
 		Status:  1,
 	}
 	vo := cartService.GetCartList()
@@ -581,15 +716,15 @@ func (d *Order) ConfirmOrder() (*ordervo.ConfirmOrder, error) {
 	)
 	//获取默认地址
 	global.Db.Model(&models.UserAddress{}).
-		Where("uid = ?", d.Uid).
+		Where("uid = ?", o.Uid).
 		Where("is_default = ?", 1).
 		First(&userAddress)
 	priceGroup := getOrderPriceGroup(valid)
-	cacheKey := cacheOrderInfo(d.Uid, valid, priceGroup, orderDto.Other{})
+	cacheKey := cacheOrderInfo(o.Uid, valid, priceGroup, orderDto.Other{})
 	//优惠券 todo
 	var user userVO.User
 
-	e := copier.Copy(&user, d.User)
+	e := copier.Copy(&user, o.User)
 	if e != nil {
 		global.LOG.Error(e)
 	}
@@ -673,15 +808,15 @@ func getOrderPriceGroup(cartInfo []cartVo.Cart) orderDto.PriceGroup {
 	}
 }
 
-func (d *Order) GetAll() vo.ResultList {
+func (o *Order) GetAll() vo.ResultList {
 	maps := make(map[string]interface{})
-	if d.Name != "" {
-		maps["name"] = d.Name
+	if o.Name != "" {
+		maps["name"] = o.Name
 	}
-	if d.Enabled >= 0 {
-		maps["is_show"] = d.Enabled
+	if o.Enabled >= 0 {
+		maps["is_show"] = o.Enabled
 	}
-	switch d.IntType {
+	switch o.IntType {
 	case -9:
 	case 0:
 		maps["paid"] = 0
@@ -712,7 +847,7 @@ func (d *Order) GetAll() vo.ResultList {
 		maps["refund_status"] = 2
 	}
 
-	total, list := models.GetAdminAllOrder(d.PageNum, d.PageSize, maps)
+	total, list := models.GetAdminAllOrder(o.PageNum, o.PageSize, maps)
 
 	var (
 		orderInfoList []models.StoreOrderCartInfo
@@ -740,16 +875,16 @@ func (d *Order) GetAll() vo.ResultList {
 	return vo.ResultList{Content: newList, TotalElements: total}
 }
 
-func (d *Order) GetUseCursor(nextID int64) vo.CursorResultList {
-	list := models.GetOrderUseCursor(d.Uid, nextID, d.PageSize)
+func (o *Order) GetUseCursor(nextID int64) vo.CursorResultList {
+	list := models.GetOrderUseCursor(o.Uid, nextID, o.PageSize)
 	var (
 		orderInfoList []models.StoreOrderCartInfo
 		cart          cartVo.Cart
 		newList       []models.StoreOrder
 	)
 	var newNextID int64
-	if len(list) == d.PageSize {
-		newNextID = list[d.PageSize-1].Id
+	if len(list) == o.PageSize {
+		newNextID = list[o.PageSize-1].Id
 	}
 	for _, order := range list {
 		global.Db.Model(&models.StoreOrderCartInfo{}).Where("oid = ?", order.Id).Find(&orderInfoList)
@@ -837,39 +972,40 @@ func payTypeName(pay_type string, paid int) string {
 	return payTypeName
 }
 
-func (d *Order) Del() error {
-	return models.DelByStoreOrder(d.Ids)
+func (o *Order) Del() error {
+	return models.DelByStoreOrder(o.Ids)
 }
 
-func (d *Order) Save() error {
-	return models.UpdateByStoreOrder(d.M)
+func (o *Order) Save() error {
+	return models.UpdateByStoreOrder(o.M)
 }
 
-func (d *Order) Deliver() error {
-	if d.M.Status != 0 {
+func (o *Order) Deliver() error {
+	if o.M.Status != 0 {
 		return errors.New("订单状态错误")
 	}
 	var express models.Express
-	err := global.Db.Model(&models.Express{}).Where("name = ?", d.M.DeliveryName).First(&express).Error
+	err := global.Db.Model(&models.Express{}).Where("name = ?", o.M.DeliveryName).First(&express).Error
 	if err != nil {
 		return errors.New("请先添加快递公司")
 	}
-	global.LOG.Info(d.M.DeliveryId)
-	d.M.Status = 1
-	d.M.DeliverySn = express.Code
-	return models.UpdateByStoreOrder(d.M)
+	global.LOG.Info(o.M.DeliveryId)
+	o.M.Status = 1
+	o.M.DeliverySn = express.Code
+	return models.UpdateByStoreOrder(o.M)
 }
 
-func (d *Order) OrderEvent(operation string) {
-	orderMsg := models.OrderMsg{Operation: operation, StoreOrder: d.M}
+func (o *Order) OrderEvent(operation string) {
+	orderMsg := models.OrderMsg{Operation: operation, StoreOrder: o.M}
 	msg, err := json.Marshal(orderMsg)
 	if err != nil {
-		global.LOG.Error("json.Marshal error", d)
+		global.LOG.Error("json.Marshal error", o)
 		return
 	}
-	p, o, err := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(&sarama.ProducerMessage{Key: mq.KafkaMsgValueStrEncoder(strconv.FormatInt(d.Uid, 10)),
-		Value: mq.KafkaMsgValueEncoder(msg), Topic: orderEnum.Topic})
+	partion, offset, err := mq.GetKafkaSyncProducer(mq.DefaultKafkaSyncProducer).Send(
+		&sarama.ProducerMessage{Key: mq.KafkaMsgValueStrEncoder(strconv.FormatInt(o.Uid, 10)),
+			Value: mq.KafkaMsgValueEncoder(msg), Topic: orderEnum.Topic})
 	if err != nil {
-		global.LOG.Error("KafkaSyncProducer error", err, "partion : ", p, "offset : ", o)
+		global.LOG.Error("KafkaSyncProducer error", err, "partion : ", partion, "offset : ", offset)
 	}
 }

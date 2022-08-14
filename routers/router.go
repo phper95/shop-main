@@ -209,6 +209,7 @@ func InitRouter() *gin.Engine {
 		authApiv1.POST("/order/create/:key", ApiOrderController.Create)
 		authApiv1.POST("/order/pay", ApiOrderController.Pay)
 		authApiv1.GET("/order/detail/:key", ApiOrderController.OrderDetail)
+		authApiv1.GET("/order/search/:keyword", ApiOrderController.OrderSearch)
 		authApiv1.GET("/order", ApiOrderController.GetList)
 		authApiv1.POST("/order/take", ApiOrderController.TakeOrder)
 		authApiv1.POST("/order/comments/:key", ApiOrderController.OrderComment)

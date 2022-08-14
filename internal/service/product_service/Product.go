@@ -205,11 +205,11 @@ func (d *Product) SearchGoods() ([]proVo.Product, int, int) {
 		global.LOG.Error("Unmarshal searchResponse error", err, string(body))
 		return nil, 0, 0
 	}
-	if searchRes != nil {
+	if searchRes == nil {
 		return productSearchList, 0, 0
 	}
 	if !searchRes.Success {
-		global.LOG.Error("searchRes.Success", string(body))
+		global.LOG.Error("searchRes failed", string(body), searchRes)
 		return nil, 0, 0
 	}
 	totalNum := int(searchRes.Data.Total)
