@@ -536,11 +536,15 @@ func (o *Order) SearchOrder() ([]*orderResult, int, int) {
 		}
 		if r.highlight != nil {
 
-			cartInfoM := make(map[string]int64, 0)
+			cartInfoM := make(map[string]int64, 0) //商品名为键，商品id为值
+			cartInfoH := make(map[int64]string, 0) //商品id为键，带高亮的商品名为值
 			for _, cart := range orderRes.CartInfo {
 				cartInfoM[cart.ProductInfo.StoreName] = cart.ProductInfo.Id
 			}
 
+			if highlights, ok := r.highlight["names"]; ok {
+
+			}
 			if highlights, ok := r.highlight["names.pinyin"]; ok {
 
 			}
