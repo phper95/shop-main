@@ -7,7 +7,6 @@ import (
 	"github.com/unknwon/com"
 	"net/http"
 	"shop/internal/models"
-	"shop/internal/service/article_service"
 	"shop/internal/service/order_service"
 	"shop/internal/service/order_service/dto"
 	"shop/pkg/app"
@@ -17,12 +16,12 @@ import (
 	"shop/pkg/util"
 )
 
-// order api
+// order api for developer
 type OrderController struct {
 }
 
-// @Title 订单列表
-// @Description 订单列表
+// @Title 用户全部订单
+// @Description 分批获取用户全部订单
 // @Success 200 {object} app.Response
 // @router / [get]
 func (e *OrderController) GetUserOrders(c *gin.Context) {
@@ -43,35 +42,6 @@ func (e *OrderController) GetUserOrders(c *gin.Context) {
 	}
 	vo := orderService.GetUseCursor(nextID)
 	appG.Response(http.StatusOK, constant.SUCCESS, vo)
-}
-
-// @Title 文章添加
-// @Description 文章添加
-// @Success 200 {object} app.Response
-// @router / [post]
-func (e *OrderController) Post(c *gin.Context) {
-	var (
-		model models.WechatArticle
-		appG  = app.Gin{C: c}
-	)
-
-	paramErr := app.BindAndValidate(c, &model)
-	if paramErr != nil {
-		appG.Response(http.StatusBadRequest, paramErr.Error(), nil)
-		return
-	}
-
-	articleService := article_service.Article{
-		M: &model,
-	}
-
-	if err := articleService.Insert(); err != nil {
-		appG.Response(http.StatusInternalServerError, constant.FAIL_ADD_DATA, nil)
-		return
-	}
-
-	appG.Response(http.StatusOK, constant.SUCCESS, nil)
-
 }
 
 // @Title 订单修改
