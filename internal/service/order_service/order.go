@@ -534,6 +534,17 @@ func (o *Order) SearchOrder() ([]*orderResult, int, int) {
 			StoreOrder: *orderM[r.OrderId],
 			highlight:  r.highlight,
 		}
+		if r.highlight != nil {
+
+			cartInfoM := make(map[string]int64, 0)
+			for _, cart := range orderRes.CartInfo {
+				cartInfoM[cart.ProductInfo.StoreName] = cart.ProductInfo.Id
+			}
+
+			if highlights, ok := r.highlight["names.pinyin"]; ok {
+
+			}
+		}
 		newOrders = append(newOrders, &orderRes)
 	}
 	global.LOG.Warnf("orderSearchList %+v", newOrders)
