@@ -7,10 +7,10 @@ import (
 type ProductReplyParam struct {
 	Comment      string `json:"comment"`
 	Pics         string `json:"pics"`
-	ProductScore int    `json:"productScore"`
-	ServiceScore int    `json:"serviceScore"`
+	ProductScore int    `json:"product_score"`
+	ServiceScore int    `json:"service_score"`
 	Unique       string `json:"unique"`
-	ProductId    int64  `json:"productId"`
+	ProductId    int64  `json:"product_id"`
 }
 
 func (p *ProductReplyParam) Valid(v *validation.Validation) {

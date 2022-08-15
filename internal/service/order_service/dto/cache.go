@@ -5,7 +5,7 @@ import (
 )
 
 type Cache struct {
-	CartInfo   []vo.Cart  `json:"cartInfo"`
-	PriceGroup PriceGroup `json:"priceGroup"`
+	CartInfo   []vo.Cart  `json:"cart_info"`
+	PriceGroup PriceGroup `json:"price_group"`
 	Other      Other      `json:"other"`
 }

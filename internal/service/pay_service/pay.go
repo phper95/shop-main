@@ -22,9 +22,10 @@ type Pay struct{}
 
 //开始支付
 func GoPay(returnMap map[string]interface{}, orderId, payType, from string,
-	uid int64, dto *orderDto.OrderExtend) (map[string]interface{}, error) {
-
+	uid int64, dto *orderDto.OrderExtend) (map[string]interface{}, *models.StoreOrder, error) {
+	var order *models.StoreOrder
 	dto = &orderDto.OrderExtend{}
+
 	switch payType {
 	case "weixin":
 		if from == "pc" {
@@ -37,7 +38,7 @@ func GoPay(returnMap map[string]interface{}, orderId, payType, from string,
 				Uid:     uid,
 				OrderId: orderId,
 			}
-			orderInfo, _, _ := orderService.GetOrderInfo()
+			orderInfo, order, _ := orderService.GetOrderInfo()
 			//expire := time.Now().Add(10 * time.Minute).Format(time.RFC3339)
 			bm := make(gopay.BodyMap)
 			bm.Set("nonce_str", util.RandomString(32)).
@@ -53,31 +54,31 @@ func GoPay(returnMap map[string]interface{}, orderId, payType, from string,
 			wxRsp, err := client.UnifiedOrder(ctx, bm)
 			if err != nil {
 				global.LOG.Error(err)
-				return nil, err
+				return nil, order, err
 			}
 			global.LOG.Info(wxRsp)
 
-			jsConfig := gin.H{"codeUrl": wxRsp.CodeUrl}
+			jsConfig := gin.H{"code_url": wxRsp.CodeUrl}
 			dto.JsConfig = jsConfig
 			returnMap["payMsg"] = "pc支付成功"
 			returnMap["result"] = dto
-
+			orderService.M = order
 		}
 	case "yue":
-		err := YuePay(orderId, uid)
+		order, err := YuePay(orderId, uid)
 		if err != nil {
 			global.LOG.Error(err)
-			return nil, err
+			return nil, order, err
 		}
 		returnMap["payMsg"] = "余额支付成功"
 
 	}
 
-	return returnMap, nil
+	return returnMap, order, nil
 }
 
 //余额支付
-func YuePay(orderId string, uid int64) error {
+func YuePay(orderId string, uid int64) (*models.StoreOrder, error) {
 	var err error
 	orderService := order_service.Order{
 		Uid:     uid,
@@ -85,7 +86,7 @@ func YuePay(orderId string, uid int64) error {
 	}
 	orderInfo, order, _ := orderService.GetOrderInfo()
 	if orderInfo.Paid == 1 {
-		return errors.New("订单已经支付")
+		return order, errors.New("订单已经支付")
 	}
 
 	tx := global.Db.Begin()
@@ -94,9 +95,6 @@ func YuePay(orderId string, uid int64) error {
 			tx.Rollback()
 		} else {
 			tx.Commit()
-			//提交事务修改订单状态就可以发送变更事件了
-			orderService.OrderEvent(orderEnum.OperationUpdate)
-
 		}
 	}()
 
@@ -106,21 +104,20 @@ func YuePay(orderId string, uid int64) error {
 	userInfo := userService.GetUserInfo()
 	global.LOG.Info(userInfo.NowMoney, orderInfo.PayPrice)
 	if userInfo.NowMoney < orderInfo.PayPrice {
-		return errors.New("余额不足")
+		return order, errors.New("余额不足")
 	}
 	err = tx.Exec("update user set now_money=now_money - ?"+
 		" where id = ?", orderInfo.PayPrice, uid).Error
 	if err != nil {
 		global.LOG.Error(err)
-		return errors.New("余额支付失败-0001")
+		return order, errors.New("余额支付失败-0001")
 	}
 	order, err = PaySuccess(tx, orderInfo.OrderId, "yue")
 	if err != nil {
 		global.LOG.Error(err)
-		return errors.New("余额支付失败-0002")
+		return order, errors.New("余额支付失败-0002")
 	}
-	orderService.M = order
-	return nil
+	return order, nil
 }
 
 //支付成功处理

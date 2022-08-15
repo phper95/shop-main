@@ -8,19 +8,19 @@ import (
 )
 
 type ConfirmOrder struct {
-	AddressInfo       models.UserAddress `json:"addressInfo"`
-	BargainId         int64              `json:"bargainId"`
-	CartInfo          []vo.Cart          `json:"cartInfo"`
-	CombinationId     int64              `json:"combinationId"`
+	AddressInfo       models.UserAddress `json:"address_info"`
+	BargainId         int64              `json:"bargain_id"`
+	CartInfo          []vo.Cart          `json:"cart_info"`
+	CombinationId     int64              `json:"combination_id"`
 	Deduction         bool               `json:"deduction"`
-	EnableIntegral    bool               `json:"enableIntegral"`
-	SeckillId         int64              `json:"seckillId"`
-	EnableIntegralNum int                `json:"enableIntegralNum"`
-	IntegralRadio     int                `json:"integralRadio"`
-	OrderKey          string             `json:"orderKey"`
-	StoreSelfMention  int                `json:"storeSelfMention"`
+	EnableIntegral    bool               `json:"enable_integral"`
+	SeckillId         int64              `json:"seckill_id"`
+	EnableIntegralNum int                `json:"enable_integral_num"`
+	IntegralRadio     int                `json:"integral_radio"`
+	OrderKey          string             `json:"order_key"`
+	StoreSelfMention  int                `json:"store_self_mention"`
 	//UsableCoupon string `json:"usableCoupon"`
 	//SystemStore string `json:"systemStore"`
-	UserInfo   vo2.User        `json:"userInfo"`
-	PriceGroup dto2.PriceGroup `json:"priceGroup"`
+	UserInfo   vo2.User        `json:"user_info"`
+	PriceGroup dto2.PriceGroup `json:"price_group"`
 }

@@ -1,11 +1,11 @@
 package vo
 
 type Compute struct {
-	CouponPrice    float64 `json:"couponPrice"`
-	DeductionPrice float64 `json:"deductionPrice"`
-	PayPostage     float64 `json:"payPostage"`
-	PayPrice       float64 `json:"payPrice"`
-	TotalPrice     float64 `json:"totalPrice"`
-	UseIntegral    int     `json:"useIntegral"`
-	PayIntegral    int     `json:"payIntegral"`
+	CouponPrice    float64 `json:"coupon_price"`
+	DeductionPrice float64 `json:"deduction_price"`
+	PayPostage     float64 `json:"pay_postage"`
+	PayPrice       float64 `json:"pay_price"`
+	TotalPrice     float64 `json:"total_price"`
+	UseIntegral    int     `json:"use_integral"`
+	PayIntegral    int     `json:"pay_integral"`
 }
