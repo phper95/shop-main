@@ -9,6 +9,7 @@ import (
 type StoreOrder struct {
 	Id                     int64         `json:"id"`
 	OrderId                string        `json:"order_id"`
+	DisplayOrderId         string        `json:"display_order_id"`
 	ExtendOrderId          string        `json:"extend_order_id"`
 	Uid                    int64         `json:"uid"`
 	RealName               string        `json:"real_name"`

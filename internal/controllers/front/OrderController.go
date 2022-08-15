@@ -245,7 +245,7 @@ func (e *OrderController) OrderDetail(c *gin.Context) {
 	}
 	order, _, _ := orderService.GetOrderInfo()
 
-	newOrder := order_service.HandleOrder(order)
+	newOrder := order_service.HandleOrder(order, true)
 
 	appG.Response(http.StatusOK, constant.SUCCESS, newOrder)
 
