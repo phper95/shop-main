@@ -3,6 +3,7 @@ package order_service
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"gitee.com/phper95/pkg/cache"
 	"gitee.com/phper95/pkg/httpclient"
 	"gitee.com/phper95/pkg/mq"
@@ -80,7 +81,7 @@ type orderSearchResponse struct {
 
 type orderResult struct {
 	ordervo.StoreOrder
-	highlight map[string][]string
+	Highlight map[string][]string `json:"highlight"`
 }
 
 //订单列表 -1全部 默认为0未支付 1待发货 2待收货 3待评价 4已完成
@@ -130,7 +131,7 @@ func (o *Order) GetList() ([]ordervo.StoreOrder, int, int) {
 	totalNum := util.Int64ToInt(total)
 	totalPage := util.GetTotalPage(totalNum, o.PageSize)
 	for _, val := range ListVo {
-		vo := HandleOrder(&val)
+		vo := HandleOrder(&val, true)
 		ReturnListVo = append(ReturnListVo, *vo)
 	}
 	return ReturnListVo, totalNum, totalPage
@@ -174,7 +175,7 @@ func (o *Order) CancelOrder() (*models.StoreOrder, error) {
 //回退库存
 func RegressionStock(tx *gorm.DB, order *ordervo.StoreOrder) error {
 	var err error
-	orderInfo := HandleOrder(order)
+	orderInfo := HandleOrder(order, true)
 	cartInfoList := orderInfo.CartInfo
 	for _, vo := range cartInfoList {
 		err = tx.Exec("update store_product_attr_value set stock=stock + ?, sales=sales - ?"+
@@ -508,7 +509,7 @@ func (o *Order) SearchOrder() ([]*orderResult, int, int) {
 	for _, hit := range searchRes.Data.Hits {
 		orderRes := orderResult{
 			StoreOrder: ordervo.StoreOrder{OrderId: hit.OrderId},
-			highlight:  hit.highlight,
+			Highlight:  hit.Highlight,
 		}
 		orders = append(orders, &orderRes)
 		orderIDs = append(orderIDs, hit.OrderId)
@@ -526,28 +527,68 @@ func (o *Order) SearchOrder() ([]*orderResult, int, int) {
 	orderM := make(map[string]*ordervo.StoreOrder, 0)
 	for _, vo := range vos {
 		//填补购物车信息
-		orderM[vo.OrderId] = HandleOrder(&vo)
+		orderM[vo.OrderId] = HandleOrder(&vo, false)
 	}
 	var newOrders []*orderResult
 	for _, r := range orders {
 		orderRes := orderResult{
 			StoreOrder: *orderM[r.OrderId],
-			highlight:  r.highlight,
+			Highlight:  r.Highlight,
 		}
-		if r.highlight != nil {
-
-			cartInfoM := make(map[string]int64, 0)
+		if r.Highlight != nil {
+			cartInfoM := make(map[string]int64, 0) //商品名为键，商品id为值
+			cartInfoH := make(map[int64]string, 0) //商品id为键，带高亮的商品名为值
 			for _, cart := range orderRes.CartInfo {
 				cartInfoM[cart.ProductInfo.StoreName] = cart.ProductInfo.Id
 			}
 
-			if highlights, ok := r.highlight["names.pinyin"]; ok {
+			if highlights, ok := r.Highlight["names"]; ok {
+				nameRmLeft := strings.Replace(highlights[0], "<em>", "", -1)
+				name := strings.Replace(nameRmLeft, "</em>", "", -1)
+				if id, ok := cartInfoM[name]; ok {
+					cartInfoH[id] = highlights[0]
+				}
+			}
+			if highlights, ok := r.Highlight["names.pinyin"]; ok {
+				nameRmLeft := strings.Replace(highlights[0], "<em>", "", -1)
+				name := strings.Replace(nameRmLeft, "</em>", "", -1)
+				if id, ok := cartInfoM[name]; ok {
+					//name字段没高亮才高亮拼音字段
+					if _, ok := cartInfoH[id]; !ok {
+						cartInfoH[id] = highlights[0]
+					}
+				}
+			}
+
+			if len(cartInfoH) > 0 {
+				fmt.Printf("cartInfoH %+v", cartInfoH)
+				//用高亮后的商品名替换原商品名（也可以在前端处理）
+				for i, cart := range orderRes.CartInfo {
+					if name, ok := cartInfoH[cart.ProductInfo.Id]; ok {
+						orderRes.CartInfo[i].ProductInfo.StoreName = name
+					}
+				}
+			}
+
+			if highlights, ok := r.Highlight["order_id"]; ok {
+				orderRes.DisplayOrderId = highlights[0]
+			}
+			if highlights, ok := r.Highlight["order_id_suffix"]; ok {
+				//order_id没高亮才展示order_id_suffix的高亮
+				if len(orderRes.DisplayOrderId) == 0 {
+					orderRes.DisplayOrderId = orderRes.OrderId[:len(orderRes.OrderId)-4] + highlights[0]
+				}
 
 			}
+			//没有匹配order_id展示原始order_id
+			if len(orderRes.DisplayOrderId) == 0 {
+				orderRes.DisplayOrderId = orderRes.OrderId
+			}
 		}
+		global.LOG.Warnf("orderRes %+v", orderRes)
 		newOrders = append(newOrders, &orderRes)
 	}
-	global.LOG.Warnf("orderSearchList %+v", newOrders)
+
 	return newOrders, totalNum, totalPage
 }
 
@@ -578,7 +619,7 @@ func (o *Order) GetOrdersInfo() ([]ordervo.StoreOrder, error) {
 }
 
 //处理订单状态
-func HandleOrder(order *ordervo.StoreOrder) *ordervo.StoreOrder {
+func HandleOrder(order *ordervo.StoreOrder, fillDisplayOrderId bool) *ordervo.StoreOrder {
 	var (
 		orderInfoList []models.StoreOrderCartInfo
 		cart          cartVo.Cart
@@ -634,6 +675,9 @@ func HandleOrder(order *ordervo.StoreOrder) *ordervo.StoreOrder {
 		statusDto.PayType = "余额支付"
 	}
 	order.StatusDto = statusDto
+	if fillDisplayOrderId && len(order.DisplayOrderId) == 0 {
+		order.DisplayOrderId = order.OrderId
+	}
 
 	return order
 }
