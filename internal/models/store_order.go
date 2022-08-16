@@ -97,6 +97,7 @@ func GetOrderUseCursor(userID, nextID int64, pageSize int) []StoreOrder {
 	var (
 		data []StoreOrder
 	)
+	//SELECT * FROM `store_order` WHERE (uid = 4 AND id > 0) AND `store_order`.`is_del` = 0 ORDER BY id asc LIMIT 10
 	global.Db.Where("uid = ? AND id > ?", userID, nextID).Limit(pageSize).Preload("UserDto").Order("id asc").Find(&data)
 
 	return data
